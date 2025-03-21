@@ -280,7 +280,7 @@
                 </li>
                 @endcan
 
-                @can('Reports.Manage')
+                @can('WeeklyReports.manage')
                 <li>
                     <a href="{{url('/weeklyreports')}}" class="waves-effect">
                         <i class="bx bx-chat"></i>

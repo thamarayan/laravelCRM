@@ -1,23 +1,23 @@
-@extends('layouts.master')
 
 
 
-@section('title')
 
-@lang('Weekly Reports')
+<?php $__env->startSection('title'); ?>
 
-@endsection
+<?php echo app('translator')->get('Weekly Reports'); ?>
+
+<?php $__env->stopSection(); ?>
 
 
 
-@section('css')
+<?php $__env->startSection('css'); ?>
 
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
 <!-- select2 css -->
 
-<link href="{{ URL::asset('build/libs/select2/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
+<link href="<?php echo e(URL::asset('build/libs/select2/css/select2.min.css')); ?>" rel="stylesheet" type="text/css" />
 
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -25,20 +25,20 @@
 
 <!-- bootstrap-datepicker css -->
 
-<link href="{{ URL::asset('build/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+<link href="<?php echo e(URL::asset('build/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css')); ?>" rel="stylesheet">
 
 
 
 <!-- DataTables -->
 
-<link href="{{ URL::asset('build/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet" type="text/css" />
+<link href="<?php echo e(URL::asset('build/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css')); ?>" rel="stylesheet" type="text/css" />
 
 <!-- Animate CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
 <!-- Responsive datatable examples -->
 
-<link href="{{ URL::asset('build/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}" rel="stylesheet"
+<link href="<?php echo e(URL::asset('build/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css')); ?>" rel="stylesheet"
 
     type="text/css" />
 
@@ -52,27 +52,27 @@
     }
 </style>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
 
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-@component('components.breadcrumb')
+<?php $__env->startComponent('components.breadcrumb'); ?>
 
-@slot('li_1')
+<?php $__env->slot('li_1'); ?>
 
 Reports
 
-@endslot
+<?php $__env->endSlot(); ?>
 
-@slot('title')
+<?php $__env->slot('title'); ?>
 
 Weekly Reports
 
-@endslot
+<?php $__env->endSlot(); ?>
 
-@endcomponent
+<?php echo $__env->renderComponent(); ?>
 
 
 
@@ -86,7 +86,7 @@ Weekly Reports
 
                 <h4 class="card-title mb-3">Weekly Report Generation - Individual Client</h4>
 
-                <form action="{{route('exportDataSingle')}}" method="get">
+                <form action="<?php echo e(route('exportDataSingle')); ?>" method="get">
                     <input type="hidden" name="regenerationToken" value="">
                     <div class="row">
 
@@ -98,11 +98,12 @@ Weekly Reports
                                 <option value="">
                                     Select Client
                                 </option>
-                                @foreach ($clients as $client)
-                                <option value="{{ $client->name }}">
-                                    {{strtoupper($client->name) }}
+                                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($client->name); ?>">
+                                    <?php echo e(strtoupper($client->name)); ?>
+
                                 </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
 
                         </div>
@@ -141,7 +142,7 @@ Weekly Reports
 
     <!--        <div class="card-body">-->
 
-    <!--            <form action="{{route('exportData')}}" method="get">-->
+    <!--            <form action="<?php echo e(route('exportData')); ?>" method="get">-->
     <!--                <input type="hidden" name="regenerationToken" value="">-->
     <!--                <div class="row">-->
 
@@ -204,71 +205,71 @@ Weekly Reports
                             <th scope="col">Current Payout Balance</th>
                             <th scope="col">Net Payout Balance</th>
                             <th scope="col">STATUS</th>
-                            @can('WeeklyReports.Download')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('WeeklyReports.Download')): ?>
                                 <th scope="col">APPROVE</th>
                                 <th scope="col">REGENERATE</th>
-                            @endcan
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
 
-                        @foreach($reports as $report)
-                        @if($report->filePath !== null)
+                        <?php $__currentLoopData = $reports; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $report): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php if($report->filePath !== null): ?>
                         <tr>
-                            <td>{{strtoupper(substr($report->clientName,11)) }}</td>
-                            <td>{{$report->startDate}}</td>
-                            <td>{{$report->endDate}}</td>                            
+                            <td><?php echo e(strtoupper(substr($report->clientName,11))); ?></td>
+                            <td><?php echo e($report->startDate); ?></td>
+                            <td><?php echo e($report->endDate); ?></td>                            
                             <td>
-                               @if ($report->status == 1 || auth()->user()->can('WeeklyReports.Download'))
-                                    <a type="button" class="btn btn-sm btn-primary" href="{{url($report->filePath)}}" target="_blank">Download <i class="bi bi-download"></i></a>
-                                @else                                    
+                               <?php if($report->status == 1 || auth()->user()->can('WeeklyReports.Download')): ?>
+                                    <a type="button" class="btn btn-sm btn-primary" href="<?php echo e(url($report->filePath)); ?>" target="_blank">Download <i class="bi bi-download"></i></a>
+                                <?php else: ?>                                    
                                     <a type="button" class="btn btn-sm btn-secondary disabled">Pending<i class="bi bi-download"></i></a>
-                                @endif
+                                <?php endif; ?>
                             </td>                               
-                            <td>${{ number_format((float) $report->payoutAmt ?? 0, 2) }}</td>
-                            <td>${{ number_format(optional($report->clientDetails)->payOutBalance ?? 0, 2) }}</td>
+                            <td>$<?php echo e(number_format((float) $report->payoutAmt ?? 0, 2)); ?></td>
+                            <td>$<?php echo e(number_format(optional($report->clientDetails)->payOutBalance ?? 0, 2)); ?></td>
                             <td>
-                                @if($report->status == null)
+                                <?php if($report->status == null): ?>
                                 <span class="badge bg-primary animate__animated animate__tada animate__slow">New</span>
-                                @elseif($report->status == 0)
+                                <?php elseif($report->status == 0): ?>
                                 <span class="badge bg-success">Rejected</span>
-                                @elseif($report->status == 1)
+                                <?php elseif($report->status == 1): ?>
                                 <span class="badge bg-success">Approved</span>
-                                @endif
+                                <?php endif; ?>
                             </td>
-                            @can('WeeklyReports.Download')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('WeeklyReports.Download')): ?>
                             <td>
-                                @if($report->status !== 1)
-                                <form action="{{route('approveReport', $report->id)}}" method="post">
-                                    @csrf
+                                <?php if($report->status !== 1): ?>
+                                <form action="<?php echo e(route('approveReport', $report->id)); ?>" method="post">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="btn btn-sm btn-success" target="_blank">Approve <i class="bi bi-check-circle-fill"></i></button>
                                 </form>
-                                @else
-                                <form action="{{route('revertApproval', $report->id)}}" method="post">
-                                    @csrf
+                                <?php else: ?>
+                                <form action="<?php echo e(route('revertApproval', $report->id)); ?>" method="post">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="btn btn-sm btn-warning" target="_blank"><i class="bi bi-arrow-left-circle-fill"></i> Revert Approval</button>
                                 </form>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td>
-                                <form action="{{route('exportDataSingle')}}" method="get">
-                                    @csrf
-                                    <input type="hidden" name="orderdatefrom" value="{{$report->startDate}}">
-                                    <input type="hidden" name="orderdateto" value="{{$report->endDate}}">
-                                    <input type="hidden" name="clientName" value="{{$report->clientName}}">
+                                <form action="<?php echo e(route('exportDataSingle')); ?>" method="get">
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="orderdatefrom" value="<?php echo e($report->startDate); ?>">
+                                    <input type="hidden" name="orderdateto" value="<?php echo e($report->endDate); ?>">
+                                    <input type="hidden" name="clientName" value="<?php echo e($report->clientName); ?>">
                                     <input type="hidden" name="regenrationToken" value="Regeneration">
 
-                                    @if($report->status !== 1)
+                                    <?php if($report->status !== 1): ?>
                                     <button type="submit" class="btn btn-sm btn-info">Regenerate <i class="bi bi-arrow-clockwise"></i></button>
-                                    @else
+                                    <?php else: ?>
                                     <button type="submit" class="btn btn-sm btn-secondary disabled">Regenerate <i class="bi bi-arrow-clockwise"></i></button>
-                                    @endif
+                                    <?php endif; ?>
                                 </form>
                             </td>
-                            @endcan
+                            <?php endif; ?>
                         </tr>
-                        @endif
-                        @endforeach
+                        <?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     </tbody>
                 </table>
@@ -285,9 +286,9 @@ Weekly Reports
 
 <!-- end row -->
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('script')
+<?php $__env->startSection('script'); ?>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -295,32 +296,33 @@ Weekly Reports
 
 <!-- select2 -->
 
-<script src="{{ URL::asset('build/libs/select2/js/select2.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/select2/js/select2.min.js')); ?>"></script>
 
 <!-- bootstrap-datepicker js -->
 
-<script src="{{ URL::asset('build/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js')); ?>"></script>
 
 
 
 <!-- Required datatable js -->
 
-<script src="{{ URL::asset('build/libs/datatables.net/js/jquery.dataTables.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net/js/jquery.dataTables.min.js')); ?>"></script>
 
-<script src="{{ URL::asset('build/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js')); ?>"></script>
 
 
 
 <!-- Responsive examples -->
 
-<script src="{{ URL::asset('build/libs/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-responsive/js/dataTables.responsive.min.js')); ?>"></script>
 
-<script src="{{ URL::asset('build/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js')); ?>"></script>
 
 
 
 <!-- init js -->
 
-<script src="{{ URL::asset('build/js/pages/crypto-orders.init.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/js/pages/crypto-orders.init.js')); ?>"></script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.master', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\laravelCRM\resources\views/reporting/weeklyreports.blade.php ENDPATH**/ ?>
