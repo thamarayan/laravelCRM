@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use DataTables;
+use App\Exports\ClientTransactionExport;
+use App\Models\Countrie;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Countrie;
 use App\Models\{Task, TaskWorkingHours, Timer, CommissionSchedule, Charges, Customers, ClientDetails, ClientSettlementLog, PaymentMethod, ClientPayment, PayOrdersVernapayment, CustomerPayment, ClientTransaction, ExportClientTransaction};
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Session;
-use Auth;
-use App\Exports\ClientTransactionExport;
+use DataTables;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
@@ -83,6 +83,10 @@ class CustomerController extends Controller
             $data['client_commission'] = $request->client_commission;
             $data['extra_client_fee'] = $request->extra_client;
             $data['crypto_fee'] = $request->crypto_fee;
+            $data['chargeback_fee'] = $request->chargeback_fee;
+            $data['refund_fee'] = $request->refund_fee;
+            $data['highRisk_fee'] = $request->highRisk_fee;
+            $data['fraudWarning_fee'] = $request->fraudWarning_fee;
             $data['rolling_reserve'] = $request->rolling_reserve;
             $data['transaction_fee'] = $request->transaction_fee;
             $data['currency'] = $request->currency;
@@ -142,6 +146,10 @@ class CustomerController extends Controller
                 'client_commission' => $request->client_commission,
                 'extra_client_fee'  => $request->extra_client,
                 'crypto_fee'        => $request->crypto_fee,
+                'chargeback_fee'    => $request->chargeback_fee,
+                'refund_fee'        => $request->refund_fee,
+                'highRisk_fee'      => $request->highRisk_fee,
+                'fraudWarning_fee'  => $request->fraudWarning_fee,
                 'rolling_reserve'   => $request->rolling_reserve,
                 'transaction_fee'   => $request->transaction_fee,
                 'psp'               => $request->psp,
@@ -362,10 +370,10 @@ class CustomerController extends Controller
         $users = User::whereHas('role', function ($query) use ($rolesToInclude) {
             $query->whereIn('name', $rolesToInclude);
         })->orderBy('id', 'DESC')->paginate(10);
-        
+
         $settlementLogs = ClientSettlementLog::get() ?? collect();
 
-        return view('adminclients.index', compact('users', 'request','settlementLogs'));
+        return view('adminclients.index', compact('users', 'request', 'settlementLogs'));
     }
 
     public function create_Client_Create($id = '')
@@ -428,6 +436,10 @@ class CustomerController extends Controller
             $data['client_commission']          = $request->client_commission;
             $data['extra_client_fee']           = $request->extra_client;
             $data['crypto_fee']                 = $request->crypto_fee;
+            $data['chargeback_fee']             = $request->chargeback_fee;
+            $data['refund_fee']                 = $request->refund_fee;
+            $data['highRisk_fee']               = $request->highRisk_fee;
+            $data['fraudWarning_fee']           = $request->fraudWarning_fee;
             $data['before_rolling_reserve']     = $request->before_rolling_reserve;
             $data['rolling_reserve']            = $request->rolling_reserve;
             $data['payabletoclient']            = $request->payabletoclient;
@@ -504,7 +516,7 @@ class CustomerController extends Controller
     public function Admin_Client_Update($id, Request $request)
     {
 
-       
+
         $this->validate($request, [
             'name'         =>  'required',
             'email'        =>  'required|email|unique:users,email,' . $id,
@@ -534,6 +546,10 @@ class CustomerController extends Controller
                 'client_commission' => $request->client_commission,
                 'rolling_reserve'   => $request->rolling_reserve,
                 'crypto_fee'        => $request->crypto_fee,
+                'chargeback_fee'    => $request->chargeback_fee,
+                'refund_fee'        => $request->refund_fee,
+                'highRisk_fee'      => $request->highRisk_fee,
+                'fraudWarning_fee'  => $request->fraudWarning_fee,
                 'transaction_fee'   => $request->transaction_fee,
                 'amount_limit'      => $request->amount_limit,
                 'card_limit'        => $request->card_limit,

@@ -43,7 +43,7 @@ return [
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
 
-        
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
@@ -61,40 +61,40 @@ return [
             'engine' => null,
         ],
 
-        
-        'mysql2' => [
-            'driver' => 'mysql',
-            'host' => env('SECOND_DB_HOST', '116.202.232.51'),
-            'port' => env('SECOND_DB_PORT', '3306'),
-            'database' => env('SECOND_DB_DATABASE', 'forge'),
-            'username' => env('SECOND_DB_USERNAME', 'forge'),
-            'password' => env('SECOND_DB_PASSWORD', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'strict' => false,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-        
-        'mysql4' => [
-            'driver' => 'mysql',
-            'host' => env('THIRD_DB_HOST', '116.202.232.51'),
-            'port' => env('THIRD_DB_PORT', '3306'),
-            'database' => env('THIRD_DB_DATABASE', 'forge'),
-            'username' => env('THIRD_DB_USERNAME', 'forge'),
-            'password' => env('THIRD_DB_PASSWORD', ''),
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'strict' => false,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
+
+        // 'mysql2' => [
+        //     'driver' => 'mysql',
+        //     'host' => env('SECOND_DB_HOST', '116.202.232.51'),
+        //     'port' => env('SECOND_DB_PORT', '3306'),
+        //     'database' => env('SECOND_DB_DATABASE', 'forge'),
+        //     'username' => env('SECOND_DB_USERNAME', 'forge'),
+        //     'password' => env('SECOND_DB_PASSWORD', ''),
+        //     'charset' => 'utf8mb4',
+        //     'collation' => 'utf8mb4_unicode_ci',
+        //     'prefix' => '',
+        //     'strict' => false,
+        //     'engine' => null,
+        //     'options' => extension_loaded('pdo_mysql') ? array_filter([
+        //         PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+        //     ]) : [],
+        // ],
+
+        // 'mysql4' => [
+        //     'driver' => 'mysql',
+        //     'host' => env('THIRD_DB_HOST', '116.202.232.51'),
+        //     'port' => env('THIRD_DB_PORT', '3306'),
+        //     'database' => env('THIRD_DB_DATABASE', 'forge'),
+        //     'username' => env('THIRD_DB_USERNAME', 'forge'),
+        //     'password' => env('THIRD_DB_PASSWORD', ''),
+        //     'charset' => 'utf8mb4',
+        //     'collation' => 'utf8mb4_unicode_ci',
+        //     'prefix' => '',
+        //     'strict' => false,
+        //     'engine' => null,
+        //     'options' => extension_loaded('pdo_mysql') ? array_filter([
+        //         PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+        //     ]) : [],
+        // ],
 
 
         'pgsql' => [
@@ -157,7 +157,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

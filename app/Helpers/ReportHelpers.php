@@ -8,11 +8,13 @@ function processRefunds($refundsData, $currency)
 {
     $refundsTotal = 0;
     $refundFeeTotal = 0;
+    $refundFee = (int) preg_replace('/\D/', '', Session::get('refund_fee', 0));
+
 
     foreach ($refundsData as $entry) {
         if ($entry->currency == $currency) {
-            $refundsTotal += ($entry->amount + 25);
-            $refundFeeTotal += 25;
+            $refundsTotal += ($entry->amount + $refundFee);
+            $refundFeeTotal += $refundFee;
         }
     }
 
@@ -27,8 +29,8 @@ function processRefunds($refundsData, $currency)
             'PSP Code' => $item->transactionID,
             'Acquirer_Status' => '',
             'Amount' => $item->amount,
-            'Refund Fee' => "$25.00",
-            'Total Amount' => $item->amount + 25,
+            'Refund Fee' => "$" . $refundFee,
+            'Total Amount' => $item->amount + $refundFee,
             'Client Name' => $item->fullName,
             'Refunded?' => '',
             'Invoice Number' => $item->invoiceNumber,
@@ -41,11 +43,12 @@ function processChargebacks($chargebackData, $currency)
 {
     $chargebacksTotal = 0;
     $chargebacksFeeTotal = 0;
+    $chargebackFee = (int) preg_replace('/\D/', '', Session::get('chargeback_fee', 0));
 
     foreach ($chargebackData as $entry) {
         if ($entry->currency == $currency) {
-            $chargebacksTotal += ($entry->amount + 50);
-            $chargebacksFeeTotal += 50;
+            $chargebacksTotal += ($entry->amount + $chargebackFee);
+            $chargebacksFeeTotal += $chargebackFee;
         }
     }
 
@@ -60,8 +63,8 @@ function processChargebacks($chargebackData, $currency)
             'PSP Code' => $item->transactionID,
             'Acquirer_Status' => '',
             'Amount' => $item->amount,
-            'Chargeback Fee' => 50,
-            'Total Amount' => $item->amount + 50,
+            'Chargeback Fee' => "$" . $chargebackFee,
+            'Total Amount' => $item->amount + $chargebackFee,
             'Client Name' => $item->fullName,
             'Blocked?' => '',
             'Invoice Number' => $item->invoiceNumber,
@@ -74,11 +77,12 @@ function highRisks($highRiskData, $currency)
 {
     $highRisksTotal = 0;
     $highRisksFeeTotal = 0;
+    $highRiskFee = (int) preg_replace('/\D/', '', Session::get('highRisk_fee', 0));
 
     foreach ($highRiskData as $entry) {
         if ($entry->currency == $currency) {
-            $highRisksTotal += ($entry->amount + 50);
-            $highRisksFeeTotal += 50;
+            $highRisksTotal += ($entry->amount + $highRiskFee);
+            $highRisksFeeTotal += $highRiskFee;
         }
     }
 
@@ -94,8 +98,8 @@ function highRisks($highRiskData, $currency)
             'PSP Code' => $item->transactionID,
             'Acquirer_Status' => '',
             'Amount' => $item->amount,
-            'HighRisk Fee' => 50,
-            'Total Amount' => $item->amount + 50,
+            'HighRisk Fee' => "$" . $highRiskFee,
+            'Total Amount' => $item->amount + $highRiskFee,
             'Client Name' => $item->fullName,
             'Blocked?' => '',
             'Invoice Number' => $item->invoiceNumber,
@@ -108,10 +112,11 @@ function fraudWarnings($fraudWarningsData, $currency)
 {
     $fraudWarningsTotal = 0;
     $fraudWarningsFeeTotal = 0;
+    $fraudWarningFee = (int) preg_replace('/\D/', '', Session::get('fraudWarning_fee', 0));
 
     foreach ($fraudWarningsData as $entry) {
         if ($entry->currency == $currency) {
-            $fraudWarningsTotal += ($entry->amount + 50);
+            $fraudWarningsTotal += ($entry->amount + $fraudWarningFee);
             $fraudWarningsFeeTotal += 50;
         }
     }
@@ -127,8 +132,8 @@ function fraudWarnings($fraudWarningsData, $currency)
             'PSP Code' => $item->transactionID,
             'Acquirer_Status' => '',
             'Amount' => $item->amount,
-            'Fraud Warning Fee' => 50,
-            'Total Amount' => $item->amount + 50,
+            'Fraud Warning Fee' => "$" . $fraudWarningFee,
+            'Total Amount' => $item->amount + $fraudWarningFee,
             'Client Name' => $item->fullName,
             'Blocked?' => '',
             'Invoice Number' => $item->invoiceNumber,

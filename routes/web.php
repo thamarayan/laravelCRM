@@ -48,15 +48,15 @@ Route::post('/upload-excel', [ExcelImportController::class, 'upload'])->name('Ex
 //     $tableNames = array_map(function ($table) {
 //         return reset($table); // Adjust the key based on your database configuration
 //     }, $tables);
-    
-    
+
+
 //   DB::statement("SET SESSION sql_mode = ''");
-   
+
 //   foreach ($tableNames as $tableName) {
 //     try {
-        
+
 //         // DB::table($tableName)->where('orderPaid', '0000-00-00 00:00:00')->update(['orderPaid' => null]);
-        
+
 //         Schema::table($tableName, function (Blueprint $table) {
 //             $table->datetime('orderPaid')->nullable()->default(null)->change();
 //             $table->string('phone', 15)->nullable()->change(); // Modify as needed
@@ -346,7 +346,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::get('/kycrequests/sumSub', [\App\Http\Controllers\KYCRequestsController::class, 'sumSub'])->name('kycrequests.sumSub');
 
-    Route::get('/sumsub/access-token', [SumsubController::class, 'getAccessToken']);
+    // Route::get('/sumsub/access-token', [SumsubController::class, 'getAccessToken']);
 
 
 
@@ -675,7 +675,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/admin/adminstatssales', [App\Http\Controllers\ReportingController::class, 'admin_client_tran'])->name('admin.adminstatssales');
 
     Route::post('/post/client/adminstatsreports', [App\Http\Controllers\ReportingController::class, 'Post_admin_client_tran'])->name('post.client.adminstatssales');
-    
+
     Route::get('/weeklyreports', [App\Http\Controllers\ReportingController::class, 'weeklyreports'])->name('weeklyreports');
 
 

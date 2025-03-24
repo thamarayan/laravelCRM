@@ -37,9 +37,9 @@ class ReportGenerator extends Controller
     {
         // Get the particular report detail
         $particularResult = WeeklyReports::where('id', $id)->get()->first();
-        
+
         // dd($particularResult);
-        
+
         // Get the agents list for that particular client
         $agentsList = ClientDetails::where('client_id', $particularResult->user_ID)
             ->pluck('agents')
@@ -50,27 +50,27 @@ class ReportGenerator extends Controller
         $agentIds = collect($agentsList)->flatten()->all();
 
         // dd($agentIds);
-        
+
         $dataToCheck = [
             'startDate' => $particularResult->startDate,  // First condition
             'clientName' => $particularResult->clientName   // Second condition
         ];
-        
+
         // Agent Commission Calculation
         foreach ($agentIds as $agentId) {
             $agent = User::where('id', $agentId)->first();
-            
-            $commissionAmt = round(((floatval($particularResult->payoutAmt) * floatval($agent->commission))/100),2);
-            
+
+            $commissionAmt = round(((floatval($particularResult->totalSuccessTrxAmt) * floatval($agent->commission)) / 100), 2);
+
             Log::info("Commission Amount :" . $commissionAmt);
-            
-            $previousCommission = str_replace(',', '', $agent->payout ?? 0);  
+
+            $previousCommission = str_replace(',', '', $agent->payout ?? 0);
             Log::info("Previous Commission Amount :" . $previousCommission);
-            
+
             $commissionAddUp = floatval($previousCommission) + floatval($commissionAmt);
             Log::info("Commission Add Up Value :" . $commissionAddUp);
 
-            $agent->payout = Number_format($commissionAddUp,2);
+            $agent->payout = Number_format($commissionAddUp, 2);
             $agent->save();
 
             AgentSettlementLog::updateOrCreate(
@@ -80,7 +80,7 @@ class ReportGenerator extends Controller
                     'agent_id' => $agent->id,
                     'startDate' => $particularResult->startDate,
                     'endDate' => $particularResult->endDate,
-                    'trxSuccessAmt' => $particularResult->payoutAmt,
+                    'trxSuccessAmt' => $particularResult->totalSuccessTrxAmt,
                     'commissionAmt' => $commissionAmt,
                 ]
             );
@@ -125,7 +125,7 @@ class ReportGenerator extends Controller
     public function revertApproval(string $id)
     {
         $particularResult = WeeklyReports::where('id', $id)->first();
-        
+
         $agentsList = ClientDetails::where('client_id', $particularResult->user_ID)
             ->pluck('agents')
             ->map(function ($item) {
@@ -135,36 +135,35 @@ class ReportGenerator extends Controller
         $agentIds = collect($agentsList)->flatten()->all();
 
         // Reverting Agents Commission
-        
+
         foreach ($agentIds as $agentId) {
             $agent = User::where('id', $agentId)->first();
-            
-            $commissionAmt = round(((floatval($particularResult->payoutAmt) * floatval($agent->commission))/100),2);
-            
+
+            $commissionAmt = round(((floatval($particularResult->payoutAmt) * floatval($agent->commission)) / 100), 2);
+
             Log::info("Commission Amt Minus :" . $commissionAmt);
-            
+
             $previousCommission = str_replace(',', '', $agent->payout ?? 0);
             $previousCommission = floatval($previousCommission);
             Log::info("Previous Commission :" . $previousCommission);
-            
+
             $commissionReverted = floatval($previousCommission) - floatval($commissionAmt);
             Log::info("Commission Reverted :" . $commissionReverted);
-            
-            $agent->payout = round($commissionReverted,2);
-            $agent->save();
-            
-            AgentSettlementLog::where('agent_id', $agent->id)
-            ->where('startDate', $particularResult->startDate)
-            ->where('endDate', $particularResult->endDate)
-            ->where('clientName', $particularResult->clientName)->delete();
 
+            $agent->payout = round($commissionReverted, 2);
+            $agent->save();
+
+            AgentSettlementLog::where('agent_id', $agent->id)
+                ->where('startDate', $particularResult->startDate)
+                ->where('endDate', $particularResult->endDate)
+                ->where('clientName', $particularResult->clientName)->delete();
         };
-        
+
         // Removing Client Settlement Logs
         $deleteWork = clientSettlementLog::where('user_ID', $particularResult->user_ID)
             ->where('startDate', $particularResult->startDate)
             ->where('endDate', $particularResult->endDate)->delete();
-            
+
         // Revert the report status back to 0    
         $updateWork = WeeklyReports::where('id', $id)->update(['status' => 0]);
 

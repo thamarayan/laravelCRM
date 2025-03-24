@@ -24,19 +24,19 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-    //   $schedule->command('queue:work --timeout=600')->dailyAt('19:39')->withoutOverlapping();
-      
-    //   $schedule->command('queue:work --max-time=3600')
-    //          ->dailyAt('19:48')
-    //          ->runInBackground();
-      
-    //   $schedule->command('generate:excel')->dailyAt('19:50');
+        //   $schedule->command('queue:work --timeout=600')->dailyAt('19:39')->withoutOverlapping();
+
+        // $schedule->command('queue:work --max-time=3600')
+        //     ->dailyAt('16:50')
+        //     ->runInBackground();
+
+        $schedule->command('generate:excel')->dailyAt('17:04');
 
 
 
         // $schedule->job(new \App\Jobs\LeftTransactionCatcher)->dailyAt('23:59');
         // $schedule->job(new \App\Jobs\ApiHealthMonitor)->everyMinute()->withoutOverlapping();
-        
+
     }
 
     /**

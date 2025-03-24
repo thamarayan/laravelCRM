@@ -1,18 +1,14 @@
-@extends('layouts.master')
+<?php $__env->startSection('title'); ?>
 
 
 
-@section('title')
+<?php echo app('translator')->get('Client Add'); ?>
 
 
 
-@lang('Client Add')
+<?php $__env->stopSection(); ?>
 
-
-
-@endsection
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 
 <style>
@@ -37,23 +33,11 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/css/bootstrap-select.css">
 
-@component('components.breadcrumb')
+<?php $__env->startComponent('components.breadcrumb'); ?>
 
 
 
-@slot('li_1')
-
-
-
-Add Merchant
-
-
-
-@endslot
-
-
-
-@slot('title')
+<?php $__env->slot('li_1'); ?>
 
 
 
@@ -61,11 +45,23 @@ Add Merchant
 
 
 
-@endslot
+<?php $__env->endSlot(); ?>
 
 
 
-@endcomponent
+<?php $__env->slot('title'); ?>
+
+
+
+Add Merchant
+
+
+
+<?php $__env->endSlot(); ?>
+
+
+
+<?php echo $__env->renderComponent(); ?>
 
 
 <div class="content-wrapper" style="margin-top: 15px">
@@ -104,19 +100,9 @@ Add Merchant
 
                             <div class="text-sm-end">
 
-                                @if($agentid)
+                                <?php if($agentid): ?>
 
-                                <a href="{{route('customer.index',$agentid)}}">
-
-                                    <button type="button" class="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2"><i
-
-                                            class="mdi mdi-arrow-left me-1"></i> Back</button>
-
-                                </a>
-
-                                @else
-
-                                <a href="{{url('/admin/allclients')}}">
+                                <a href="<?php echo e(route('customer.index',$agentid)); ?>">
 
                                     <button type="button" class="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2"><i
 
@@ -124,7 +110,17 @@ Add Merchant
 
                                 </a>
 
-                                @endif
+                                <?php else: ?>
+
+                                <a href="<?php echo e(url('/admin/allclients')); ?>">
+
+                                    <button type="button" class="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2"><i
+
+                                            class="mdi mdi-arrow-left me-1"></i> Back</button>
+
+                                </a>
+
+                                <?php endif; ?>
 
                             </div>
 
@@ -135,29 +131,29 @@ Add Merchant
 
 
                     </div>
-                    @if (count($errors) > 0)
+                    <?php if(count($errors) > 0): ?>
                     <div class="alert alert-danger">
                         <ul>
-                            @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
+                            <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </ul>
                     </div>
-                    @endif
-                    <form autocomplete="off" action="{{ route('admin.client.store') }}" method="Post">
+                    <?php endif; ?>
+                    <form autocomplete="off" action="<?php echo e(route('admin.client.store')); ?>" method="Post">
 
-                        @csrf
+                        <?php echo csrf_field(); ?>
 
                         <!-- Modal body -->
                         <div class="row">
-                            <input type="hidden" name="role" value="{{$role->id}}">
+                            <input type="hidden" name="role" value="<?php echo e($role->id); ?>">
                             <input type="hidden" value="1" name="new_row[]">
 
-                            @if($agentid)
-                            <input type="hidden" name="registered_by" value="{{$agentid}}">
-                            @else
-                            <input type="hidden" name="registered_by" value="{{Auth::user()->id}}">
-                            @endif
+                            <?php if($agentid): ?>
+                            <input type="hidden" name="registered_by" value="<?php echo e($agentid); ?>">
+                            <?php else: ?>
+                            <input type="hidden" name="registered_by" value="<?php echo e(Auth::user()->id); ?>">
+                            <?php endif; ?>
 
                             <div class="form-group col-lg-6">
                                 <label>Name <small class="text-muted">(The name should be same as it is in the transaction)</small> <span class="text-danger">*</span></label>
@@ -286,9 +282,9 @@ Add Merchant
                                     <label>Agent<span class="text-danger">*</span></label>
                                     <select class="selectpicker select-w" name="agents[]" multiple data-live-search="true" required>
                                         <option value="">Select Agents</option>
-                                        @foreach($users as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                        @endforeach
+                                        <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($value->id); ?>"><?php echo e($value->name); ?></option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
                             </div>
@@ -318,9 +314,9 @@ Add Merchant
                                 <label>Payment Gateway</label>
                                 <select class="selectpicker select-w mb-2" name="payment_gateway_id[]" multiple data-live-search="true">
                                     <option value="">Select Payment Gateway</option>
-                                    @foreach($payment as $key => $value)
-                                    <option value="{{ $value->id }}">{{ $value->payment_gateway }} ({{ $value->doman_name }})</option>
-                                    @endforeach
+                                    <?php $__currentLoopData = $payment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($value->id); ?>"><?php echo e($value->payment_gateway); ?> (<?php echo e($value->doman_name); ?>)</option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -357,9 +353,9 @@ Add Merchant
                                             <label>Payment Gateway<span class="text-danger">*</span></label>
                                             <select class="form-control select2 mb-2" name="payment_gateway_id[]" required>
                                                 <option value="">Select Payment Gateway</option>
-                                                @foreach($payment as $key => $value)
-                                                <option value="{{ $value->id }}">{{ $value->payment_gateway }} ({{ $value->doman_name }})</option>
-                                                @endforeach
+                                                <?php $__currentLoopData = $payment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($value->id); ?>"><?php echo e($value->payment_gateway); ?> (<?php echo e($value->doman_name); ?>)</option>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
 
                                         </div>
@@ -413,9 +409,9 @@ Add Merchant
                                             <label>Country<span class="text-danger">*</span></label>
                                             <select class="selectpicker select-w" name="country_1[]" multiple data-live-search="true" required>
                                                 <option value="">Select Country</option>
-                                                @foreach($country as $value)
-                                                <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                                @endforeach
+                                                <?php $__currentLoopData = $country; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($value->id); ?>"><?php echo e($value->name); ?></option>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
 
                                         </div>
@@ -488,11 +484,11 @@ Add Merchant
 </div>
 
 
-@endsection
+<?php $__env->stopSection(); ?>
 
 
 
-@section('script')
+<?php $__env->startSection('script'); ?>
 
 
 <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
@@ -513,7 +509,7 @@ Add Merchant
             e.preventDefault();
             if (x < max_fields) { //max input box allowed
                 x++; //text box increment
-                $(wrapper).append('<div class="row mt-4"><div class="col-lg-4"><input type="hidden" value="' + x + '" name="new_row[]"><div class="form-group"><label>Payment Gateway<span class="text-danger">*</span></label><select class="form-control select2 mb-2" name="payment_gateway_id[]" required><option value="">Select Payment Gateway</option>@foreach($payment as $key => $value)<option value="{{ $value->id }}">{{ $value->payment_gateway }} ({{ $value->doman_name }})</option>@endforeach</select></div></div><div class="col-lg-4"><div class="form-group"><label>Is Live<span class="text-danger">*</span></label><br><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_live_' + x + '" id="is_live_yes' + x + '" value="Yes" checked><label class="form-check-label" for="is_live_yes' + x + '">Yes</label></div><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_live_' + x + '" id="is_live_no' + x + '" value="No"><label class="form-check-label" for="is_live_no' + x + '">No</label></div></div></div><div class="col-lg-4"><div class="form-group"><label>Request URL<span class="text-danger">*</span></label><input type="text" name="request_url[]" class="form-control" placeholder="Enter Request URL" required></div></div><div class="col-lg-4"><div class="form-group"><label>Return URL</label><input type="text" name="return_url[]" class="form-control" placeholder="Enter Payment Secret" required></div></div><div class="col-lg-4"><div class="form-group"><label>Country<span class="text-danger">*</span></label><select class="selectpicker select-w" name="country_' + x + '[]" multiple data-live-search="true" required><option value="">Select Country</option>@foreach($country as $value)<option value="{{ $value->id }}">{{ $value->name }}</option>@endforeach</select></div></div><div class="form-group col-lg-4"><label>Amount Limit</label><div class="input-group mb-2"><input type="number" class="form-control" name="amount_limit[]" value="" placeholder="Amount Limit"/ required></div></div><div class="form-group col-lg-4"><label>Currency</label><select class="form-control" name="currency[]" required><option value="">Select Currency</option><option>($) USD</option><option>(€) EURO</option><option>(£) GBP</option><option>(₹) INR</option></select></div><div class="col-lg-4 mt-4"><div class="form-group"><label>Is Active<span class="text-danger">*</span></label><br><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active_' + x + '" id="is_active_en' + x + '" value="Enable" checked><label class="form-check-label" for="is_active_en' + x + '">Enable</label></div><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active_' + x + '" id="is_active_di' + x + '" value="Disable"><label class="form-check-label" for="is_active_di' + x + '">Disable</label></div></div></div><div class="col-lg-4"><button class="remove_field btn btn-info float-right" onclick="removeHere(this)" type="button">Remove</button></div></div>'); //add input box
+                $(wrapper).append('<div class="row mt-4"><div class="col-lg-4"><input type="hidden" value="' + x + '" name="new_row[]"><div class="form-group"><label>Payment Gateway<span class="text-danger">*</span></label><select class="form-control select2 mb-2" name="payment_gateway_id[]" required><option value="">Select Payment Gateway</option><?php $__currentLoopData = $payment; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($value->id); ?>"><?php echo e($value->payment_gateway); ?> (<?php echo e($value->doman_name); ?>)</option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div></div><div class="col-lg-4"><div class="form-group"><label>Is Live<span class="text-danger">*</span></label><br><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_live_' + x + '" id="is_live_yes' + x + '" value="Yes" checked><label class="form-check-label" for="is_live_yes' + x + '">Yes</label></div><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_live_' + x + '" id="is_live_no' + x + '" value="No"><label class="form-check-label" for="is_live_no' + x + '">No</label></div></div></div><div class="col-lg-4"><div class="form-group"><label>Request URL<span class="text-danger">*</span></label><input type="text" name="request_url[]" class="form-control" placeholder="Enter Request URL" required></div></div><div class="col-lg-4"><div class="form-group"><label>Return URL</label><input type="text" name="return_url[]" class="form-control" placeholder="Enter Payment Secret" required></div></div><div class="col-lg-4"><div class="form-group"><label>Country<span class="text-danger">*</span></label><select class="selectpicker select-w" name="country_' + x + '[]" multiple data-live-search="true" required><option value="">Select Country</option><?php $__currentLoopData = $country; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><option value="<?php echo e($value->id); ?>"><?php echo e($value->name); ?></option><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?></select></div></div><div class="form-group col-lg-4"><label>Amount Limit</label><div class="input-group mb-2"><input type="number" class="form-control" name="amount_limit[]" value="" placeholder="Amount Limit"/ required></div></div><div class="form-group col-lg-4"><label>Currency</label><select class="form-control" name="currency[]" required><option value="">Select Currency</option><option>($) USD</option><option>(€) EURO</option><option>(£) GBP</option><option>(₹) INR</option></select></div><div class="col-lg-4 mt-4"><div class="form-group"><label>Is Active<span class="text-danger">*</span></label><br><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active_' + x + '" id="is_active_en' + x + '" value="Enable" checked><label class="form-check-label" for="is_active_en' + x + '">Enable</label></div><div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="is_active_' + x + '" id="is_active_di' + x + '" value="Disable"><label class="form-check-label" for="is_active_di' + x + '">Disable</label></div></div></div><div class="col-lg-4"><button class="remove_field btn btn-info float-right" onclick="removeHere(this)" type="button">Remove</button></div></div>'); //add input box
 
                 setTimeout(function() {
 
@@ -542,4 +538,5 @@ Add Merchant
     }
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.master', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\laravelCRM\resources\views/adminclients/create.blade.php ENDPATH**/ ?>
