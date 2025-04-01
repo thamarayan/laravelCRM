@@ -12,6 +12,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Events\BeforeSheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Illuminate\Support\Facades\Log;
 
 class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, ShouldAutoSize, WithEvents
 {
@@ -48,26 +49,14 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 'Acquirer_Status',
                 'Amount',
                 'Fee',
-                'Before RR',
+                'Before RR + TRX Fee',
                 'RR',
                 'Final Payable',
                 'Invoice Number',
+                'Net after PSP & Client',
+                'Limegrove 50%',
+                'PPY Share 50%',
                 'Bank Name',
-                'Leopard Stripe (3.41%)',
-                'Leopart Stripe USDt (1.00%)',
-                'Designer Lounge Stripe (3.4%)',
-                'Designer Lounge Stripe USDt (1.00%)',
-                'CR Amex (3.10%)',
-                'EM Amex (3.10%)',
-                'FX Amex (3.10%)',
-                'Wembley Stripe (3.36%)',
-                'Wembley Stripe USDt (1.00%)',
-                'Automate Stripe (3.36%)',
-                'Automate Stripe USDt (1.00%)',
-                'Vtaxiscy Stripe (4.1%)',
-                'Vtaxiscy Stripe USDt (1.00%)',
-                'EMerchant Pay (4.75%)',
-                'Total PSP Fee'
             ]; // Default headers
         }
     }
@@ -85,7 +74,7 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 // Set the main heading before the first row
                 $sheet = $event->sheet->getDelegate();
 
-                
+
                 // Merge cells for the main heading
                 $sheet->mergeCells('A1:K1'); // Adjust the range based on your data
 
@@ -119,15 +108,15 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
 
                 // Apply text wrapping and alignment for A1
                 $sheet->getStyle('A1')->getAlignment()->setWrapText(false);
-
             },
 
             AfterSheet::class => function (AfterSheet $event) {
 
                 $sheet = $event->sheet->getDelegate();
-                
-                $highestRow = $sheet->getHighestRow(); 
+
+                $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn();
+
 
                 $clientMDRValue_session = Session::get('clientMDRValue');
                 $clientTRXValue_session = Session::get('clientTrxValue');
@@ -137,12 +126,12 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 for ($row = 3; $row <= $highestRow; $row++) {
                     $amountCell = "G$row"; // Amount Column
                     $feeCell = "H$row"; // 'Fee (MDR + Trx Fee)' column 
-                    $beforeRRCell = "I$row"; 
+                    $beforeRRCell = "I$row";
                     $rrCell = "J$row";
                     $finalPayableCell = "K$row";
 
                     $sheet->setCellValue($feeCell, "=(($amountCell * $clientMDRValue_session)/100)");
-                    $sheet->setCellValue($beforeRRCell, "=($amountCell - $feeCell - $clientTRXValue_session)");   
+                    $sheet->setCellValue($beforeRRCell, "=($amountCell - $feeCell - $clientTRXValue_session)");
                     $sheet->setCellValue($rrCell, "=(($amountCell * $clientRollingReserve_session)/100 )");
                     $sheet->setCellValue($finalPayableCell, "=($beforeRRCell - $rrCell )");
                 }
@@ -152,7 +141,7 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 $lastRow = $sheet->getHighestRow() + 2;
                 // $lastValueRow = $sheet->getHighestRow();
 
-               
+
                 // Add the totals to the bottom
                 $sheet->setCellValue("B{$lastRow}", 'TOTAL'); // Label in the second column (adjust as needed)
                 $sheet->setCellValue("G{$lastRow}", "=SUM(G3:G" . ($lastRow - 1) . ")");
@@ -160,6 +149,7 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 $sheet->setCellValue("I{$lastRow}", "=SUM(I3:I" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("J{$lastRow}", "=SUM(J3:J" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("K{$lastRow}", "=SUM(K3:K" . ($lastRow - 1) . ")");
+                $sheet->setCellValue("M{$lastRow}", "=SUM(M3:M" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("N{$lastRow}", "=SUM(N3:N" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("O{$lastRow}", "=SUM(O3:O" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("P{$lastRow}", "=SUM(P3:P" . ($lastRow - 1) . ")");
@@ -170,18 +160,11 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 $sheet->setCellValue("U{$lastRow}", "=SUM(U3:U" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("V{$lastRow}", "=SUM(V3:V" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("W{$lastRow}", "=SUM(W3:W" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("X{$lastRow}", "=SUM(X3:X" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("Y{$lastRow}", "=SUM(Y3:Y" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("Z{$lastRow}", "=SUM(Z3:Z" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("AA{$lastRow}", "=SUM(AA3:AA" . ($lastRow - 1) . ")");
 
-                $sheet->setCellValue("AB{$lastRow}", "=SUM(N" . ($lastRow) . ":AA" . ($lastRow) . "  )");
 
-                $totalPspValue_USD = $sheet->getCell("Z{$lastRow}")->getCalculatedValue();
-                Session::put('totalPspValue_USD', $totalPspValue_USD);
 
                 // Optionally style the totals row
-                $sheet->getStyle("B{$lastRow}:AA{$lastRow}")->applyFromArray([
+                $sheet->getStyle("B{$lastRow}:{$highestColumn}{$lastRow}")->applyFromArray([
                     'font' => ['bold' => true],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -190,11 +173,11 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 ]);
 
                 // Apply background color and bold font to the header row (1st row)
-                $sheet->getStyle('A2:AB2')->applyFromArray([
+                $sheet->getStyle("A2:{$highestColumn}2")->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'color' => ['argb' => '00000000'],
-                        
+
                     ],
                     'fill' => [
                         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -211,9 +194,9 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 foreach (range('A', 'Z') as $column) {
                     $sheet->getColumnDimension($column)->setAutoSize(true);
                 }
-                
-                // Apply background color and bold font to the header row (1st row)
-                $sheet->getStyle("AB{$lastRow}:AB{$lastRow}")->applyFromArray([
+
+
+                $sheet->getStyle("{$highestColumn}{$lastRow}:{$highestColumn}{$lastRow}")->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'color' => ['argb' => 'FFFFFFFF'],
@@ -230,7 +213,7 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 ]);
 
 
-                $columns = ['G', 'H', 'I', 'J', 'K', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB'];
+                $columns = ['G', 'H', 'I', 'J', 'K', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB'];
 
                 foreach ($columns as $column) {
                     $event->sheet->getDelegate()
@@ -254,8 +237,6 @@ class UsdTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
 
                         ]);
                 }
-
-
             },
 
 

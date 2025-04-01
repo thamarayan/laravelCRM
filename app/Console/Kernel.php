@@ -27,10 +27,10 @@ class Kernel extends ConsoleKernel
         //   $schedule->command('queue:work --timeout=600')->dailyAt('19:39')->withoutOverlapping();
 
         // $schedule->command('queue:work --max-time=3600')
-        //     ->dailyAt('16:50')
+        //     ->dailyAt('12:15')
         //     ->runInBackground();
 
-        $schedule->command('generate:excel')->dailyAt('17:04');
+        $schedule->command('generate:excel')->dailyAt('17:18');
 
 
 

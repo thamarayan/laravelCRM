@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\{PayOrdersAcqV1, PayOrdersVernapayment, PayOrdersVernapaymentv1, PayOrdersVernapaymentv3, PayOrdersVernapaymentv4, User, ClientTransaction, WeeklyReports};
-use App\Export\Report;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
-use App\Export\PayOrdersVernapaymentwithDate;
-use App\Export\PayOrdersVernapaymentv1withDate;
-use App\Export\PayOrdersVernapaymentv3withDate;
-use App\Export\PayOrdersVernapaymentv4withDate;
 use App\Export\PayOrdersAcqV1MrvwithDate;
 use App\Export\PayOrdersAcqV1MstreetwithDate;
 use App\Export\PayOrdersAcqV1RalseftwithDate;
+use App\Export\PayOrdersVernapaymentv1withDate;
+use App\Export\PayOrdersVernapaymentv3withDate;
+use App\Export\PayOrdersVernapaymentv4withDate;
+use App\Export\PayOrdersVernapaymentwithDate;
+use App\Export\Report;
+use App\Models\{ClientDetails, PayOrdersAcqV1, PayOrdersVernapayment, PayOrdersVernapaymentv1, PayOrdersVernapaymentv3, PayOrdersVernapaymentv4, User, ClientTransaction, WeeklyReports};
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+
+use function Laravel\Prompts\alert;
 
 class ReportingController extends Controller
 {
@@ -25,432 +28,432 @@ class ReportingController extends Controller
         return view('reporting.index', compact('request'));
     }
 
-    public function Sales_index(Request $request)
-    {
-
-        $result_v1 = PayOrdersVernapayment::select();
-
-        $result_v2 = PayOrdersVernapaymentv1::select();
-
-        $result_v3 = PayOrdersVernapaymentv3::select();
-
-        $result_v4 = PayOrdersVernapaymentv4::select();
-
-        $resultmrv = PayOrdersAcqV1::where('merchantName', 'MRV')->select();
-
-        $resultmstreet = PayOrdersAcqV1::where('merchantName', 'Mstreet')->select();
-
-        $resultralseft = PayOrdersAcqV1::where('merchantName', 'Ralseft')->select();
-
-
-        if ($request->s_date != null && $request->e_date != null) {
-            // for v1
-
-            $tusd_v1 = $result_v1->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'USD')->sum('amount');
-
-            $teur_v1 = $result_v1->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'EUR')->sum('amount');
-
-            // for v2
-
-            $tusd_v2 = $result_v2->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'USD')->sum('amount');
-
-            $teur_v2 = $result_v2->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'EUR')->sum('amount');
-
-            // for v3
-
-            $tusd_v3 = $result_v3->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'USD')->sum('amount');
-
-            $teur_v3 = $result_v3->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'EUR')->sum('amount');
-
-
-            // for v4
-
-            $tusd_v4 = $result_v4->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'USD')->sum('amount');
-
-            $teur_v4 = $result_v4->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('currency', 'EUR')->sum('amount');
-
-
-            // for mrv
-
-            $tusd_mrv = $resultmrv->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'MRV')->where('currency', 'USD')->sum('amount');
-
-            $teur_mrv = $resultmrv->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'MRV')->where('currency', 'EUR')->sum('amount');
+    // public function Sales_index(Request $request)
+    // {
+
+    //     $result_v1 = PayOrdersVernapayment::select();
+
+    //     $result_v2 = PayOrdersVernapaymentv1::select();
+
+    //     $result_v3 = PayOrdersVernapaymentv3::select();
+
+    //     $result_v4 = PayOrdersVernapaymentv4::select();
+
+    //     $resultmrv = PayOrdersAcqV1::where('merchantName', 'MRV')->select();
+
+    //     $resultmstreet = PayOrdersAcqV1::where('merchantName', 'Mstreet')->select();
+
+    //     $resultralseft = PayOrdersAcqV1::where('merchantName', 'Ralseft')->select();
+
+
+    //     if ($request->s_date != null && $request->e_date != null) {
+    //         // for v1
+
+    //         $tusd_v1 = $result_v1->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'USD')->sum('amount');
+
+    //         $teur_v1 = $result_v1->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'EUR')->sum('amount');
+
+    //         // for v2
+
+    //         $tusd_v2 = $result_v2->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'USD')->sum('amount');
+
+    //         $teur_v2 = $result_v2->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'EUR')->sum('amount');
+
+    //         // for v3
+
+    //         $tusd_v3 = $result_v3->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'USD')->sum('amount');
+
+    //         $teur_v3 = $result_v3->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'EUR')->sum('amount');
+
+
+    //         // for v4
+
+    //         $tusd_v4 = $result_v4->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'USD')->sum('amount');
+
+    //         $teur_v4 = $result_v4->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('currency', 'EUR')->sum('amount');
+
+
+    //         // for mrv
+
+    //         $tusd_mrv = $resultmrv->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'MRV')->where('currency', 'USD')->sum('amount');
+
+    //         $teur_mrv = $resultmrv->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'MRV')->where('currency', 'EUR')->sum('amount');
 
-
-            // for mstreet
+
+    //         // for mstreet
 
-            $tusd_mstreet = $resultmstreet->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'Mstreet')->where('currency', 'USD')->sum('amount');
+    //         $tusd_mstreet = $resultmstreet->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'Mstreet')->where('currency', 'USD')->sum('amount');
 
-            $teur_mstreet = $resultmstreet->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'Mstreet')->where('currency', 'EUR')->sum('amount');
+    //         $teur_mstreet = $resultmstreet->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'Mstreet')->where('currency', 'EUR')->sum('amount');
 
-            // for ralself
+    //         // for ralself
 
-            $tusd_ral = $resultralseft->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'Ralseft')->where('currency', 'USD')->sum('amount');
+    //         $tusd_ral = $resultralseft->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'Ralseft')->where('currency', 'USD')->sum('amount');
 
-            $teur_ral = $resultralseft->when(
-                $request->s_date && $request->e_date,
-                function (Builder $builder) use ($request) {
-                    $builder->whereBetween(
-                        DB::raw('DATE(orderDate)'),
-                        [
-                            $request->s_date,
-                            $request->e_date
-                        ]
-                    );
-                }
-            )->where('merchantName', 'Ralseft')->where('currency', 'EUR')->sum('amount');
-        } elseif ($request->s_date != null) {
-            // for v1
+    //         $teur_ral = $resultralseft->when(
+    //             $request->s_date && $request->e_date,
+    //             function (Builder $builder) use ($request) {
+    //                 $builder->whereBetween(
+    //                     DB::raw('DATE(orderDate)'),
+    //                     [
+    //                         $request->s_date,
+    //                         $request->e_date
+    //                     ]
+    //                 );
+    //             }
+    //         )->where('merchantName', 'Ralseft')->where('currency', 'EUR')->sum('amount');
+    //     } elseif ($request->s_date != null) {
+    //         // for v1
 
-            $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
-            // for v2
+    //         // for v2
 
-            $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
-            // for v3
+    //         // for v3
 
-            $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
-            // for v4
+    //         // for v4
 
-            $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            // for mrv
+    //         // for mrv
 
-            $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            // for mstreet
+    //         // for mstreet
 
-            $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            // for ralself
+    //         // for ralself
 
-            $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //         $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', $request->s_date)->sum('amount');
 
 
-            $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
-        } elseif ($request->e_date != null) {
-            // for v1
-            $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', $request->s_date)->sum('amount');
+    //     } elseif ($request->e_date != null) {
+    //         // for v1
+    //         $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
-            // for v2
+    //         // for v2
 
-            $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            // for v3
+    //         // for v3
 
-            $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
-            // for v4
+    //         // for v4
 
-            $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            // for mrv
+    //         // for mrv
 
-            $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            // for mstreet
+    //         // for mstreet
 
-            $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            // for ralself
+    //         // for ralself
 
-            $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //         $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', $request->e_date)->sum('amount');
 
 
-            $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
-        } else {
-            // for v1
+    //         $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', $request->e_date)->sum('amount');
+    //     } else {
+    //         // for v1
 
-            $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $tusd_v1 = $result_v1->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
 
-            $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $teur_v1 = $result_v1->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
-            // for v2
+    //         // for v2
 
-            $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $tusd_v2 = $result_v2->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
 
-            $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $teur_v2 = $result_v2->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
-            // for v3
+    //         // for v3
 
-            $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $tusd_v3 = $result_v3->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
 
-            $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $teur_v3 = $result_v3->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
-            // for v4
+    //         // for v4
 
-            $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $tusd_v4 = $result_v4->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
 
-            $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
+    //         $teur_v4 = $result_v4->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-24')->sum('amount');
 
 
-            // for mrv
+    //         // for mrv
 
-            $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //         $tusd_mrv = $resultmrv->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
 
 
-            $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //         $teur_mrv = $resultmrv->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
 
 
-            // for mstreet
+    //         // for mstreet
 
-            $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //         $tusd_mstreet = $resultmstreet->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
 
 
-            $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //         $teur_mstreet = $resultmstreet->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
 
 
-            // for ralself
+    //         // for ralself
 
-            $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //         $tusd_ral = $resultralseft->where('currency', 'USD')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
 
 
-            $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
-        }
+    //         $teur_ral = $resultralseft->where('currency', 'EUR')->whereDate('orderDate', '=', '2023-11-2')->sum('amount');
+    //     }
 
-        //for v1 
+    //     //for v1 
 
-        $totalusdv1 = round($tusd_v1, 2);
+    //     $totalusdv1 = round($tusd_v1, 2);
 
-        $totaleurv1 = round($teur_v1, 2);
+    //     $totaleurv1 = round($teur_v1, 2);
 
-        // for v2
+    //     // for v2
 
-        $totalusdv2 = round($tusd_v2, 2);
+    //     $totalusdv2 = round($tusd_v2, 2);
 
-        $totaleurv2 = round($teur_v2, 2);
+    //     $totaleurv2 = round($teur_v2, 2);
 
-        // for v3
+    //     // for v3
 
-        $totalusdv3 = round($tusd_v3, 2);
+    //     $totalusdv3 = round($tusd_v3, 2);
 
-        $totaleurv3 = round($teur_v3, 2);
+    //     $totaleurv3 = round($teur_v3, 2);
 
-        // for v4
+    //     // for v4
 
-        $totalusdv4 = round($tusd_v4, 2);
+    //     $totalusdv4 = round($tusd_v4, 2);
 
-        $totaleurv4 = round($teur_v4, 2);
+    //     $totaleurv4 = round($teur_v4, 2);
 
-        // for mrv
+    //     // for mrv
 
-        $totalusdmrv = round($tusd_mrv, 2);
+    //     $totalusdmrv = round($tusd_mrv, 2);
 
-        $totaleurmrv = round($teur_mrv, 2);
+    //     $totaleurmrv = round($teur_mrv, 2);
 
-        // for mstreet
+    //     // for mstreet
 
-        $totalusdmstreet = round($tusd_mstreet, 2);
+    //     $totalusdmstreet = round($tusd_mstreet, 2);
 
-        $totaleurmstreet = round($teur_mstreet, 2);
+    //     $totaleurmstreet = round($teur_mstreet, 2);
 
-        // for ralseft
+    //     // for ralseft
 
-        $totalusdralseft = round($tusd_ral, 2);
+    //     $totalusdralseft = round($tusd_ral, 2);
 
-        $totaleurralseft = round($teur_ral, 2);
+    //     $totaleurralseft = round($teur_ral, 2);
 
 
 
-        return view('reporting.sales', compact('request', 'totalusdv1', 'totaleurv1', 'totalusdv2', 'totaleurv2', 'totalusdv3', 'totaleurv3', 'totalusdv4', 'totaleurv4', 'totalusdmrv', 'totaleurmrv', 'totalusdmstreet', 'totaleurmstreet', 'totalusdralseft', 'totaleurralseft'));
-    }
+    //     return view('reporting.sales', compact('request', 'totalusdv1', 'totaleurv1', 'totalusdv2', 'totaleurv2', 'totalusdv3', 'totaleurv3', 'totalusdv4', 'totaleurv4', 'totalusdmrv', 'totaleurmrv', 'totalusdmstreet', 'totaleurmstreet', 'totalusdralseft', 'totaleurralseft'));
+    // }
 
-    public function new_Report_Index(Request $request)
-    {
-        return view('reporting.report_new', compact('request'));
-    }
+    // public function new_Report_Index(Request $request)
+    // {
+    //     return view('reporting.report_new', compact('request'));
+    // }
 
     // public function new_Post_Report_Index(Request $request)
     // {
@@ -2621,11 +2624,172 @@ class ReportingController extends Controller
         //     return $client;
         // });
 
-        $clients = User::where('role',10)->get()->all();
+        $clients = User::where('role', 10)->get()->all();
 
         $reports = WeeklyReports::get()->all();
 
 
         return view('reporting.weeklyreports', compact('clients', 'reports'));
+    }
+
+    public function get_agent_details($id)
+    {
+        $clientName = $id;
+        $agentConfig = User::where('name', $clientName)->first()?->clientDetails?->agentConfig;
+        $explode_id = json_decode($agentConfig, true);
+        // Log::info(count($explode_id));
+
+        if (!$agentConfig || empty($agentConfig)) {
+            return response()->json([]); // Return an empty array if no data
+        }
+
+        return response()->json(json_decode($agentConfig, true));
+    }
+
+    public function updateAgentDetails(Request $request)
+    {
+        $clientName = $request->clientName;
+        $agents = $request->agents;
+
+        Log::info($agents);
+        Log::info($clientName);
+
+        // $implode_agents = json_encode($agents, true);
+
+        // Log::info($implode_agents);
+
+        $userId = User::where('name', $clientName)->first();
+        $result = ClientDetails::where('client_id', $userId->id)->update(['agentConfig' => $agents]);
+
+        Log::info($result);
+
+        if ($result) {
+            return response()->json(['message' => 'Client details updated successfully']);
+        } else {
+            return response()->json(['error' => 'Update failed'], 500);
+        }
+    }
+
+    public function deleteAgent(Request $request)
+    {
+        $request->validate([
+            'agent' => 'required|string',
+        ]);
+
+        $clientName = $request->clientName;
+        $record = User::where('name', $clientName)->first()?->clientDetails?->agentConfig;
+
+        Log::info($record);
+
+        if (!$record) {
+            return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+        }
+
+        // Decode JSON
+        $pspArray = json_decode($record, true);
+
+        Log::info($pspArray);
+
+        // Filter out the item to be removed
+        $filteredArray = array_filter($pspArray, function ($item) use ($request) {
+            return $item['agent'] !== $request->agent;
+        });
+
+        // Re-index array
+        $filteredArray = array_values($filteredArray);
+
+        // Save back to the database
+        $updatedAgents = json_encode($filteredArray);
+        Log::info("Updated AGents : " . $updatedAgents);
+        $agent = User::where('name', $clientName)->first();
+        $result = ClientDetails::where('client_id', $agent->id)
+            ->update(['agentConfig' => json_encode($updatedAgents)]);
+
+
+        if ($result) {
+            return response()->json(['success' => true, 'updated_data' => $filteredArray]);
+        } else {
+            return response()->json(['success' => false, 'Message' => 'Record Not Found']);
+        }
+    }
+
+    public function get_psp_details($id)
+    {
+        $clientName = $id;
+        $pspConfig = User::where('name', $clientName)->first()?->clientDetails?->pspConfig;
+        $explode_id = json_decode($pspConfig, true);
+
+        if (!$pspConfig || empty($pspConfig)) {
+            return response()->json([]); // Return an empty array if no data
+        }
+
+        return response()->json(json_decode($pspConfig, true));
+    }
+
+    public function updatePSPDetails(Request $request)
+    {
+        $clientName = $request->clientName;
+        $psps = $request->psps;
+
+        Log::info($psps);
+        Log::info($clientName);
+
+        $implode_psps = json_encode($psps, true);
+
+        Log::info($implode_psps);
+
+        $userId = User::where('name', $clientName)->first();
+        $result = ClientDetails::where('client_id', $userId->id)->update(['pspConfig' => $implode_psps]);
+
+        Log::info($result);
+
+        if ($result) {
+            return response()->json(['message' => 'PSP details updated successfully']);
+        } else {
+            return response()->json(['error' => 'Update failed'], 500);
+        }
+    }
+
+    public function deletePSP(Request $request)
+    {
+        $request->validate([
+            'psp' => 'required|string',
+        ]);
+
+        $clientName = $request->clientName;
+        $record = User::where('name', $clientName)->first()?->clientDetails?->pspConfig;
+
+        Log::info($record);
+
+        if (!$record) {
+            return response()->json(['success' => false, 'message' => 'Record not found'], 404);
+        }
+
+        // Decode JSON
+        $pspArray = json_decode($record, true);
+
+        Log::info($pspArray);
+
+        // Filter out the item to be removed
+        $filteredArray = array_filter($pspArray, function ($item) use ($request) {
+            return $item['pspName'] !== $request->psp;
+        });
+
+        // Re-index array
+        $filteredArray = array_values($filteredArray);
+
+        // Save back to the database
+        $updatedPSPs = json_encode($filteredArray);
+        Log::info("Updated PSPs : " . $updatedPSPs);
+        $agent = User::where('name', $clientName)->first();
+        $result = ClientDetails::where('client_id', $agent->id)
+            ->update(['pspConfig' => json_encode($updatedPSPs)]);
+
+
+        if ($result) {
+            return response()->json(['success' => true, 'updated_data' => $updatedPSPs]);
+        } else {
+            return response()->json(['success' => false, 'Message' => 'Record Not Found']);
+        }
     }
 }

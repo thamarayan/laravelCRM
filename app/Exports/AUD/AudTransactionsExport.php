@@ -50,22 +50,10 @@ class AudTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 'RR',
                 'Final Payable',
                 'Invoice Number',
+                'Net after PSP & Client',
+                'Limegrove 50%',
+                'PPY Share 50%',
                 'Bank Name',
-                'Leopard Stripe (3.41%)',
-                'Leopart Stripe USDt (1.00%)',
-                'Designer Lounge Stripe (3.4%)',
-                'Designer Lounge Stripe USDt (1.00%)',
-                'CR Amex (3.10%)',
-                'EM Amex (3.10%)',
-                'FX Amex (3.10%)',
-                'Wembley Stripe (3.36%)',
-                'Wembley Stripe USDt (1.00%)',
-                'Automate Stripe (3.36%)',
-                'Automate Stripe USDt (1.00%)',
-                'Vtaxiscy Stripe (4.1%)',
-                'Vtaxiscy Stripe USDt (1.00%)',
-                'EMerchant Pay (4.75%)',
-                'Total PSP Fee',
             ]; // Default headers
         }
     }
@@ -155,6 +143,7 @@ class AudTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 $sheet->setCellValue("I{$lastRow}", "=SUM(I3:I" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("J{$lastRow}", "=SUM(J3:J" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("K{$lastRow}", "=SUM(K3:K" . ($lastRow - 1) . ")");
+                $sheet->setCellValue("M{$lastRow}", "=SUM(M3:M" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("N{$lastRow}", "=SUM(N3:N" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("O{$lastRow}", "=SUM(O3:O" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("P{$lastRow}", "=SUM(P3:P" . ($lastRow - 1) . ")");
@@ -164,15 +153,15 @@ class AudTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 $sheet->setCellValue("T{$lastRow}", "=SUM(T3:T" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("U{$lastRow}", "=SUM(U3:U" . ($lastRow - 1) . ")");
                 $sheet->setCellValue("V{$lastRow}", "=SUM(V3:V" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("W{$lastRow}", "=SUM(W3:W" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("X{$lastRow}", "=SUM(X3:X" . ($lastRow - 1) . ")");
-                $sheet->setCellValue("Y{$lastRow}", "=SUM(Y3:Y" . ($lastRow - 1) . ")");
+                // $sheet->setCellValue("W{$lastRow}", "=SUM(W3:W" . ($lastRow - 1) . ")");
+                // $sheet->setCellValue("X{$lastRow}", "=SUM(X3:X" . ($lastRow - 1) . ")");
+                // $sheet->setCellValue("Y{$lastRow}", "=SUM(Y3:Y" . ($lastRow - 1) . ")");
 
-                $sheet->setCellValue("AB{$lastRow}", "=SUM(N" . ($lastRow) . ":AA" . ($lastRow) . "  )");
+                // $sheet->setCellValue("AB{$lastRow}", "=SUM(N" . ($lastRow) . ":AA" . ($lastRow) . "  )");
 
 
-                $totalPspValue_AUD = $sheet->getCell("Z{$lastRow}")->getCalculatedValue();
-                Session::put('totalPspValue_AUD', $totalPspValue_AUD);
+                // $totalPspValue_AUD = $sheet->getCell("Z{$lastRow}")->getCalculatedValue();
+                // Session::put('totalPspValue_AUD', $totalPspValue_AUD);
 
 
 
@@ -224,7 +213,7 @@ class AudTransactionsExport implements FromCollection, WithTitle, WithHeadings, 
                 ]);
 
 
-                $columns = ['G', 'H', 'I', 'J', 'K', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+                $columns = ['G', 'H', 'I', 'J', 'K', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
                 foreach ($columns as $column) {
                     $event->sheet->getDelegate()

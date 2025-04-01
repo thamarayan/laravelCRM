@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 function processRefunds($refundsData, $currency)
 {
@@ -22,6 +23,7 @@ function processRefunds($refundsData, $currency)
     Session::put("refunds_fee_total_{$currency}", $refundFeeTotal);
 
     return collect($refundsData)
+        ->filter(fn($item) => $item->currency === $currency)
         ->values()
         ->map(fn($item, $index) => [
             'No' => $index + 1,
@@ -56,6 +58,7 @@ function processChargebacks($chargebackData, $currency)
     Session::put("chargebacks_fee_total_{$currency}", $chargebacksFeeTotal);
 
     return collect($chargebackData)
+        ->filter(fn($item) => $item->currency === $currency)
         ->values()
         ->map(fn($item, $index) => [
             'No' => $index + 1,
@@ -91,6 +94,7 @@ function highRisks($highRiskData, $currency)
 
 
     return collect($highRiskData)
+        ->filter(fn($item) => $item->currency === $currency)
         ->values()
         ->map(fn($item, $index) => [
             'No' => $index + 1,
@@ -125,6 +129,7 @@ function fraudWarnings($fraudWarningsData, $currency)
     Session::put("fraudWarnings_fee_total_{$currency}", $fraudWarningsFeeTotal);
 
     return collect($fraudWarningsData)
+        ->filter(fn($item) => $item->currency === $currency)
         ->values()
         ->map(fn($item, $index) => [
             'No' => $index + 1,
@@ -148,15 +153,22 @@ function processPartialRefunds($data2, $currency)
     $partialRefundsTotal = 0;
     $partialRefundsFeeTotal = 0;
 
+    Log::info("PR Data");
+    Log::info($data2);
+
+    $refundFee = (int) preg_replace('/\D/', '', Session::get('refund_fee', 0));
+
     foreach ($data2 as $entry) {
-        $partialRefundsTotal += ($entry->refund_amount + 25);
-        $partialRefundsFeeTotal += 25;
+        $partialRefundsTotal += ($entry->refund_amount + $refundFee);  // Access refund_amount as an object property
+        $partialRefundsFeeTotal += $refundFee;
     }
 
     Session::put("partialRefundsTotal{$currency}", $partialRefundsTotal);
     Session::put("partialRefunds_fee_total_{$currency}", $partialRefundsFeeTotal);
+    Log::info("Partial Refunds TOtal : " . $partialRefundsFeeTotal);
 
     return collect($data2)
+        ->filter(fn($item) => $item->currency === $currency)
         ->values()
         ->map(fn($item, $index) => [
             'No' => $index + 1,
@@ -164,8 +176,8 @@ function processPartialRefunds($data2, $currency)
             'Refund Complete Date' => $item->refund_complete_date,
             'Acquirer_Status' => '',
             'Amount' => $item->refund_amount,
-            'Refund Fee' => "$25.00",
-            'Total Amount' => $item->refund_amount + 25,
+            'Refund Fee' => "$." . $refundFee,
+            'Total Amount' => $item->refund_amount + $refundFee,
             'Refunded?' => '',
             'Blocked?' => '',
             'Invoice Number' => $item->invoiceNumber,

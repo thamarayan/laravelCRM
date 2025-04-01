@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ExcelImportController;
 use Illuminate\Support\Facades\Route;
 use App\Export\ReportExport;
+use App\Http\Controllers\ReportingController;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
@@ -677,6 +678,19 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/post/client/adminstatsreports', [App\Http\Controllers\ReportingController::class, 'Post_admin_client_tran'])->name('post.client.adminstatssales');
 
     Route::get('/weeklyreports', [App\Http\Controllers\ReportingController::class, 'weeklyreports'])->name('weeklyreports');
+
+    Route::get('/get_agent_details/{id}', [App\Http\Controllers\ReportingController::class, 'get_agent_details'])->name('agentDetails');
+
+    Route::post('/updateAgentDetails', [App\Http\Controllers\ReportingController::class, 'updateAgentDetails'])->name('updateAgentDetails');
+
+    Route::post('/deleteAgent', [App\Http\Controllers\ReportingController::class, 'deleteAgent'])->name('deleteAgent');
+
+    Route::get('/get_psp_details/{id}', [App\Http\Controllers\ReportingController::class, 'get_psp_details'])->name('pspDetails');
+
+    Route::post('/updatePSPDetails', [App\Http\Controllers\ReportingController::class, 'updatePSPDetails'])->name('updatePSPDetails');
+
+    Route::post('/deletePSP', [App\Http\Controllers\ReportingController::class, 'deletePSP'])->name('deletePSP');
+
 
 
     // invoice

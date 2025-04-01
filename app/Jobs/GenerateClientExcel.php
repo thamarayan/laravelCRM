@@ -20,8 +20,9 @@ use Throwable;
 use Illuminate\Support\Facades\Session;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Http;
-use App\Helpers;
+use App\Helpers;;
 
+use App\Helpers\ReportMainHelper;
 
 class GenerateClientExcel implements ShouldQueue
 {
@@ -88,11 +89,11 @@ class GenerateClientExcel implements ShouldQueue
             // Find the Sunday of the previous week
             $previousWeekEnd = $previousWeekStart->copy()->endOfWeek(Carbon::SUNDAY);
 
-            // $fromDate = $previousWeekStart->toDateString();
-            // $toDate = $previousWeekEnd->toDateString();
+            $fromDate = $previousWeekStart->toDateString();
+            $toDate = $previousWeekEnd->toDateString();
 
-            $fromDate = "2024-11-15";
-            $toDate = "2024-11-21";
+            // $fromDate = "2024-11-15";
+            // $toDate = "2024-11-21";
 
             $toDateFull = Carbon::parse($toDate)->endOfDay();
 
@@ -103,6 +104,7 @@ class GenerateClientExcel implements ShouldQueue
             $merchants = User::where('role', 10)->get();
 
             foreach ($merchants as $merchant) {
+                // Log::info("Hit");
 
                 $clientMDRValue = $merchant->clientDetails->psp;
                 Session::put('clientMDRValue', $clientMDRValue);
@@ -116,6 +118,30 @@ class GenerateClientExcel implements ShouldQueue
                 $refund_fee = $merchant->clientDetails->refund_fee;
                 $highRisk_fee = $merchant->clientDetails->highRisk_fee;
                 $fraudWarning_fee = $merchant->clientDetails->fraudWarning_fee;
+                $agentsData =  $merchant->clientDetails->agentConfig ?? null;
+
+                if (!empty($agentsData)) {
+
+                    $agentsDataArray = json_decode($agentsData, true);
+                    Log::info("Here...");
+                    Log::info($agentsDataArray);
+                    foreach ($agentsDataArray as $agent) {
+                        if (isset($agent['agent']) && $agent['agent'] === "PP Friend USDT Fee") {
+                            Session::put('ppFriendUSDTFee', $agent['share']);
+                        } else {
+                            Log::warning("agentsDataArray is not a valid array after decoding.");
+                        }
+                    }
+                } else {
+                    Log::warning("agentsData is null or empty.");
+                }
+
+
+                $pspData = $merchant->clientDetails->pspConfig;
+
+
+                // Log::info("agentsData : " . $agentsData);
+                // Log::info("pspData : " . $pspData);
 
                 Session::put('clientTrxValue', $clientTrxValue);
                 Session::put('clientRollingReserve', $clientRollingReserve);
@@ -125,6 +151,8 @@ class GenerateClientExcel implements ShouldQueue
                 Session::put('refund_fee', $refund_fee);
                 Session::put('highRisk_fee', $highRisk_fee);
                 Session::put('fraudWarning_fee', $fraudWarning_fee);
+                Session::put('agentsData', $agentsData);
+                Session::put('pspsData', $pspData);
 
 
                 $tableName = "pay_orders_" . $clientName;
@@ -132,13 +160,41 @@ class GenerateClientExcel implements ShouldQueue
                 if ($tableName !== 'pay_orders_xm_refund') {
 
                     // To Calculate USD Transactions 
-                    $data = DB::table($tableName)
+                    $data = DB::connection('mysql2')->table($tableName)
                         ->select('transactionID', 'fullName', 'orderDate', 'amount', 'currency', 'orderStatus', 'invoiceNumber', 'bank_name')
                         ->whereBetween('orderDate', [$fromDate, $toDateFull])
                         ->whereIn('orderStatus', [200, 2001, 2006, 2007, 2008, 2009, 2025])
                         ->orderBy('orderDate', 'desc')
                         ->get()
                         ->toArray();
+
+                    // Query to process Refunds, Chargebacks, Fraud Warning & High Risk Transactions
+
+                    $rcfhData_2025DB = DB::connection('mysql2')->table($tableName)
+                        ->whereBetween('chargeback_date', [$fromDate, $toDateFull])
+                        ->whereIn('orderStatus', [2001, 2006, 2007, 2008, 2009]) // Includes Chargebacks (2007, 2008) and Fraud Warning (2006)
+                        ->where('included_in_report', 0)
+                        ->get();
+
+                    $rcfhData_2024DB = DB::connection('mysql4')->table($tableName)
+                        ->whereBetween('chargeback_date', [$fromDate, $toDateFull])
+                        ->whereIn('orderStatus', [2001, 2006, 2007, 2008, 2009]) // Includes Chargebacks (2007, 2008) and Fraud Warning (2006)
+                        ->where('included_in_report', 0)
+                        ->get();
+
+                    // Processing Partial Refunds USD
+                    $prData2025DB = DB::connection('mysql2')->table('pay_orders_xm_refund')
+                        ->whereBetween('refund_complete_date', [$fromDate, $toDateFull])
+                        ->where('client', $clientName)
+                        ->where('included_in_report', 0)
+                        ->get();
+
+                    $prData2024DB = DB::connection('mysql4')->table('pay_orders_xm_refund')
+                        ->whereBetween('refund_complete_date', [$fromDate, $toDateFull])
+                        ->where('client', $clientName)
+                        ->where('included_in_report', 0)
+                        ->get();
+
 
                     // // // Skip if no data
                     if (empty($data)) {
@@ -209,113 +265,105 @@ class GenerateClientExcel implements ShouldQueue
                             }
                         }
 
-                        $processedData[$currency] = collect($data)->where('currency', $currency)->filter(function ($item) {
-                            return $item !== null; // Exclude null values
-                        })->map(function ($item, $index) {
+                        // $processedData[$currency] = collect($data)->where('currency', $currency)->filter(function ($item) {
+                        //     return $item !== null; // Exclude null values
+                        // })->map(function ($item, $index) {
 
-                            $leopartStripe = 0;
-                            $leopartStripe_usdt = 0;
-                            $designerLoungeStripe = 0;
-                            $designerLoungeStripe_usdt = 0;
-                            $crAmex = 0;
-                            $emAmex = 0;
-                            $fxAmex = 0;
-                            $wembleyStripe = 0;
-                            $wembleyStripe_usdt = 0;
-                            $automatestripe = 0;
-                            $automatestripe_usdt = 0;
-                            $vtaxiscyStripe = 0;
-                            $vtaxiscyStripe_usdt = 0;
-                            $eMerchantPay = 0;
+                        //     $leopartStripe = 0;
+                        //     $leopartStripe_usdt = 0;
+                        //     $designerLoungeStripe = 0;
+                        //     $designerLoungeStripe_usdt = 0;
+                        //     $crAmex = 0;
+                        //     $emAmex = 0;
+                        //     $fxAmex = 0;
+                        //     $wembleyStripe = 0;
+                        //     $wembleyStripe_usdt = 0;
+                        //     $automatestripe = 0;
+                        //     $automatestripe_usdt = 0;
+                        //     $vtaxiscyStripe = 0;
+                        //     $vtaxiscyStripe_usdt = 0;
+                        //     $eMerchantPay = 0;
 
-                            if ($item->bank_name == "Leopard Stripe") {
-                                $leopartStripe += ($item->amount * 3.41) / 100;
-                                $leopartStripe_usdt += $item->amount * 0.01;
-                            } elseif ($item->bank_name == "DesignerLounge Stripe") {
-                                $designerLoungeStripe += ($item->amount * 3.40) / 100;
-                                $designerLoungeStripe_usdt += $item->amount * 0.01;
-                            } elseif ($item->bank_name == "CR AMEX") {
-                                $crAmex += ($item->amount * 3.10) / 100;
-                            } elseif ($item->bank_name == "EM AMEX") {
-                                $emAmex += ($item->amount * 3.10) / 100;
-                            } elseif ($item->bank_name == "FX AMEX") {
-                                $fxAmex += ($item->amount * 3.10) / 100;
-                            } elseif ($item->bank_name == "Wembley Stripe") {
-                                $wembleyStripe += ($item->amount * 3.36) / 100;
-                                $wembleyStripe_usdt += $item->amount * 0.01;
-                            } elseif ($item->bank_name == "Automate Stripe") {
-                                $automatestripe += ($item->amount * 3.36) / 100;
-                                $automatestripe_usdt += $item->amount * 0.01;
-                            } elseif ($item->bank_name == "Vtaxiscy Stripe") {
-                                $vtaxiscyStripe += ($item->amount * 4.1) / 100;
-                                $vtaxiscyStripe_usdt += $item->amount * 0.01;
-                            } elseif ($item->bank_name == "EmerchantPay 2D" || "EmerchantPayLiberty 3D" || "EmerchantPay") {
-                                $eMerchantPay += ($item->amount * 4.75) / 100;
-                            }
+                        //     if ($item->bank_name == "Leopard Stripe") {
+                        //         $leopartStripe += ($item->amount * 3.41) / 100;
+                        //         $leopartStripe_usdt += $item->amount * 0.01;
+                        //     } elseif ($item->bank_name == "DesignerLounge Stripe") {
+                        //         $designerLoungeStripe += ($item->amount * 3.40) / 100;
+                        //         $designerLoungeStripe_usdt += $item->amount * 0.01;
+                        //     } elseif ($item->bank_name == "CR AMEX") {
+                        //         $crAmex += ($item->amount * 3.10) / 100;
+                        //     } elseif ($item->bank_name == "EM AMEX") {
+                        //         $emAmex += ($item->amount * 3.10) / 100;
+                        //     } elseif ($item->bank_name == "FX AMEX") {
+                        //         $fxAmex += ($item->amount * 3.10) / 100;
+                        //     } elseif ($item->bank_name == "Wembley Stripe") {
+                        //         $wembleyStripe += ($item->amount * 3.36) / 100;
+                        //         $wembleyStripe_usdt += $item->amount * 0.01;
+                        //     } elseif ($item->bank_name == "Automate Stripe") {
+                        //         $automatestripe += ($item->amount * 3.36) / 100;
+                        //         $automatestripe_usdt += $item->amount * 0.01;
+                        //     } elseif ($item->bank_name == "Vtaxiscy Stripe") {
+                        //         $vtaxiscyStripe += ($item->amount * 4.1) / 100;
+                        //         $vtaxiscyStripe_usdt += $item->amount * 0.01;
+                        //     } elseif ($item->bank_name == "EmerchantPay 2D" || "EmerchantPayLiberty 3D" || "EmerchantPay") {
+                        //         $eMerchantPay += ($item->amount * 4.75) / 100;
+                        //     }
 
-                            $orderStatusValue = "";
+                        //     $orderStatusValue = "";
 
-                            if ($item->orderStatus == 200) {
-                                $orderStatusValue = "Success";
-                            } elseif ($item->orderStatus == 2001) {
-                                $orderStatusValue = "Refunded";
-                            } elseif ($item->orderStatus == 2005) {
-                                $orderStatusValue = "Fraud Warning";
-                            } elseif ($item->orderStatus == 2007) {
-                                $orderStatusValue = "Ethoca CB";
-                            } elseif ($item->orderStatus == 2008) {
-                                $orderStatusValue = "Chargeback";
-                            } elseif ($item->orderStatus == 2009) {
-                                $orderStatusValue = "High Risk";
-                            } elseif ($item->orderStatus == 2025) {
-                                $orderStatusValue = "Partial Refund";
-                            }
+                        //     if ($item->orderStatus == 200) {
+                        //         $orderStatusValue = "Success";
+                        //     } elseif ($item->orderStatus == 2001) {
+                        //         $orderStatusValue = "Refunded";
+                        //     } elseif ($item->orderStatus == 2005) {
+                        //         $orderStatusValue = "Fraud Warning";
+                        //     } elseif ($item->orderStatus == 2007) {
+                        //         $orderStatusValue = "Ethoca CB";
+                        //     } elseif ($item->orderStatus == 2008) {
+                        //         $orderStatusValue = "Chargeback";
+                        //     } elseif ($item->orderStatus == 2009) {
+                        //         $orderStatusValue = "High Risk";
+                        //     } elseif ($item->orderStatus == 2025) {
+                        //         $orderStatusValue = "Partial Refund";
+                        //     }
 
-                            return [
-                                'No' => $index + 1,
-                                'Transaction ID' => $item->transactionID,
-                                'Order Date' => $item->orderDate,
-                                'Order Status' => $orderStatusValue,
-                                'Currency' => $item->currency,
-                                'Acquirer_Status' => '',
-                                'Amount' => $item->amount,
-                                'Fee (MDR - ' . Session::get('clientMDRValue') => '',
-                                'Before RR - TRX Fee ( ' . Session::get('clientTrxValue') . 'USD)' => '',
-                                'RR - ' . Session::get('clientRollingReserve') . '%' => '',
-                                'Payable To Client - Final' => '',
-                                'Invoice Number' => $item->invoiceNumber,
-                                'Bank Name' => $item->bank_name,
-                                'Leopard Stripe (3.41%)' => $leopartStripe,
-                                'Leopart Stripe USDt (1.00%)' => $leopartStripe_usdt,
-                                'Designer Lounge Stripe (3.4%)' => $designerLoungeStripe,
-                                'Designer Lounge Stripe USDt (1.00%)' => $designerLoungeStripe_usdt,
-                                'CR Amex (3.10%)' => $crAmex,
-                                'EM Amex (3.10%)' => $emAmex,
-                                'FX Amex (3.10%)' => $fxAmex,
-                                'Wembley Stripe (3.36%)' => $wembleyStripe,
-                                'Wembley Stripe USDt (1.00%)' => $wembleyStripe_usdt,
-                                'Automate Stripe (3.36%)' => $automatestripe,
-                                'Automate Stripe USDt (1.00%)' => $automatestripe_usdt,
-                                'Vtaxiscy Stripe (4.1%)' => $vtaxiscyStripe,
-                                'Vtaxiscy Stripe USDt (1.00%)' => $vtaxiscyStripe_usdt,
-                                'EMerchant Pay' => $eMerchantPay,
-                                'Total PSP Fee' => ''
-                            ];
-                        });
+                        //     return [
+                        //         'No' => $index + 1,
+                        //         'Transaction ID' => $item->transactionID,
+                        //         'Order Date' => $item->orderDate,
+                        //         'Order Status' => $orderStatusValue,
+                        //         'Currency' => $item->currency,
+                        //         'Acquirer_Status' => '',
+                        //         'Amount' => $item->amount,
+                        //         'Fee (MDR - ' . Session::get('clientMDRValue') => '',
+                        //         'Before RR - TRX Fee ( ' . Session::get('clientTrxValue') . 'USD)' => '',
+                        //         'RR - ' . Session::get('clientRollingReserve') . '%' => '',
+                        //         'Payable To Client - Final' => '',
+                        //         'Invoice Number' => $item->invoiceNumber,
+                        //         'Bank Name' => $item->bank_name,
+                        //         'Leopard Stripe (3.41%)' => $leopartStripe,
+                        //         'Leopart Stripe USDt (1.00%)' => $leopartStripe_usdt,
+                        //         'Designer Lounge Stripe (3.4%)' => $designerLoungeStripe,
+                        //         'Designer Lounge Stripe USDt (1.00%)' => $designerLoungeStripe_usdt,
+                        //         'CR Amex (3.10%)' => $crAmex,
+                        //         'EM Amex (3.10%)' => $emAmex,
+                        //         'FX Amex (3.10%)' => $fxAmex,
+                        //         'Wembley Stripe (3.36%)' => $wembleyStripe,
+                        //         'Wembley Stripe USDt (1.00%)' => $wembleyStripe_usdt,
+                        //         'Automate Stripe (3.36%)' => $automatestripe,
+                        //         'Automate Stripe USDt (1.00%)' => $automatestripe_usdt,
+                        //         'Vtaxiscy Stripe (4.1%)' => $vtaxiscyStripe,
+                        //         'Vtaxiscy Stripe USDt (1.00%)' => $vtaxiscyStripe_usdt,
+                        //         'EMerchant Pay' => $eMerchantPay,
+                        //         'Total PSP Fee' => ''
+                        //     ];
+                        // });
 
-                        // Query to process Refunds, Chargebacks, Fraud Warning & High Risk Transactions
+                        $processedData[$currency] = ReportMainHelper::processTransactionData($data, $currency, $clientName);
 
-                        $rcfhData_2025DB = DB::table($tableName)
-                            ->whereBetween('chargeback_date', [$fromDate, $toDateFull])
-                            ->whereIn('orderStatus', [2001, 2006, 2007, 2008, 2009]) // Includes Chargebacks (2007, 2008) and Fraud Warning (2006)
-                            ->where('included_in_report', 0)
-                            ->get();
 
-                        $rcfhData_2024DB = DB::table($tableName)
-                            ->whereBetween('chargeback_date', [$fromDate, $toDateFull])
-                            ->whereIn('orderStatus', [2001, 2006, 2007, 2008, 2009]) // Includes Chargebacks (2007, 2008) and Fraud Warning (2006)
-                            ->where('included_in_report', 0)
-                            ->get();
+
+
 
                         $rcfhDataMerged = $rcfhData_2025DB->merge($rcfhData_2024DB);
 
@@ -324,6 +372,12 @@ class GenerateClientExcel implements ShouldQueue
                         $rcfhDataGrouped = $rcfhData->groupBy('orderStatus')->map(function ($items) {
                             return $items->toArray(); // Convert collection to array
                         });
+
+                        $prDataMerged = $prData2025DB->merge($prData2024DB);
+
+                        $prData = $prDataMerged->sortByDesc('orderDate')->values();
+
+                        $prDataGrouped = $prData->toArray();
 
                         $refundsData = $rcfhDataGrouped->get(2001, []);
                         $chargebacksData = array_merge(
@@ -346,17 +400,8 @@ class GenerateClientExcel implements ShouldQueue
                         // Process High Risk Transactions
                         $highRisks[$currency] = \App\Helpers\highRisks($highRiskData, $currency);
 
-                        // Processing Partial Refunds USD
-                        $data2 = DB::table('pay_orders_xm_refund')
-                            ->whereBetween('refund_complete_date', [$fromDate, $toDateFull])
-                            ->where('client', $clientName)
-                            ->where('status', 0)
-                            ->where('currency', $currency)
-                            ->where('included_in_report', 0)
-                            ->get()
-                            ->toArray();
-
-                        $partialRefunds[$currency] = \App\Helpers\processPartialRefunds($data2, $currency);
+                        // Partial Refund Transactions
+                        $partialRefunds[$currency] = \App\Helpers\processPartialRefunds($prDataGrouped, $currency);
                     }
                 }
 
@@ -411,6 +456,28 @@ class GenerateClientExcel implements ShouldQueue
                 $payable_to_client_total = round($payable_to_client_usd1 + $payable_to_client_eur1 + $payable_to_client_jpy1 + $payable_to_client_aud1 + $payable_to_client_aed1 + $payable_to_client_gbp1, 2);
                 $crypto_charge = round($payable_to_client_total * ($crypto_fee / 100), 2);
                 $amt_owe_to_client = round($payable_to_client_total - $crypto_charge, 2);
+
+                $NetPYYShare = (float) Session::get('totalPyyShare-USD') ?? 0 + (float) Session::get('totalPyyShare-EUR') ?? 0 + (float) Session::get('totalPyyShare-JPY') ?? 0 +
+                    (float) Session::get('totalPyyShare-AED') ?? 0 + (float) Session::get('totalPyyShare-AUD') ?? 0 + (float) Session::get('totalPyyShare-GBP') ?? 0;
+
+                $NetLimeGroveShare = (float) Session::get('totalLimeGroveShare-USD') ?? 0 + (float) Session::get('totalLimeGroveShare-EUR') ?? 0 + (float) Session::get('totalLimeGroveShare-JPY') ?? 0 +
+                    (float) Session::get('totalLimeGroveShare-AED') ?? 0 + (float) Session::get('totalLimeGroveShare-AUD') ?? 0 + (float) Session::get('totalLimeGroveShare-GBP') ?? 0;
+
+                $NetRefundFee = (float) Session::get('refunds_fee_total_USD') ?? 0 + (float) Session::get('refunds_fee_total_EUR') ?? 0 + (float) Session::get('refunds_fee_total_JPY') ?? 0
+                    + (float) Session::get('refunds_fee_total_AED') ?? 0 + (float) Session::get('refunds_fee_total_AUD') ?? 0 + (float) Session::get('refunds_fee_total_GBP') ?? 0;
+
+                $NetCBFee = (float) Session::get('chargebacks_fee_total_USD') ?? 0 + (float) Session::get('chargebacks_fee_total_EUR') ?? 0 + (float) Session::get('chargebacks_fee_total_JPY') ?? 0
+                    + (float) Session::get('chargebacks_fee_total_AED') ?? 0 + (float) Session::get('chargebacks_fee_total_AUD') ?? 0 + (float) Session::get('chargebacks_fee_total_GBP') ?? 0;
+
+                $NetHRFee = (float) Session::get('highRisks_fee_total_USD') ?? 0 + (float) Session::get('highRisks_fee_total_EUR') ?? 0 + (float) Session::get('highRisks_fee_total_JPY') ?? 0
+                    + (float) Session::get('highRisks_fee_total_AED') ?? 0 + (float) Session::get('highRisks_fee_total_AUD') ?? 0 + (float) Session::get('highRisks_fee_total_GBP') ?? 0;
+
+                $NetFWFee = (float) Session::get('fraudWarnings_fee_total_USD') ?? 0 + (float) Session::get('fraudWarnings_fee_total_EUR') ?? 0 + (float) Session::get('fraudWarnings_fee_total_JPY') ?? 0
+                    + (float) Session::get('fraudWarnings_fee_total_AED') ?? 0 + (float) Session::get('fraudWarnings_fee_total_AUD') ?? 0 + (float) Session::get('fraudWarnings_fee_total_GBP') ?? 0;
+
+                $NetPRFee = (float) Session::get('partialRefunds_fee_total_USD') ?? 0 + (float) Session::get('partialRefunds_fee_total_EUR') ?? 0 + (float) Session::get('partialRefunds_fee_total_JPY') ?? 0
+                    + (float) Session::get('partialRefunds_fee_total_AED') ?? 0 + (float) Session::get('partialRefunds_fee_total_AUD') ?? 0 + (float) Session::get('partialRefunds_fee_total_GBP') ?? 0;
+
 
 
                 $cumulativeValues = [
@@ -502,10 +569,69 @@ class GenerateClientExcel implements ShouldQueue
 
 
                 $values = array_merge($values, [
+                    '' => '....',
                     'NET CALCULATIONS' => 'VALUES',
                     'Payable to Client - TOTAL' => $payable_to_client_total ?? 0,
                     'Less : ' . Session::get('crypto_fee') . ' - Settlement Fee in Crypto' => $crypto_charge ?? 0,
                     'Amount we owe to Client - FINAL' => $amt_owe_to_client ?? 0,
+                    '' => '....'
+                ]);
+
+
+                $agentFees = Session::get('agent_fees');
+                Log::info($agentFees);
+                // Merge agent fee details into values
+                foreach ($agentFees as $name => $fee) {
+                    if ($name !== "PP Friend USDT Fee") {
+                        $values["..."] = "...";
+                        $values[$name] = round($fee, 2); // Format to 2 decimal places
+                        $values["..."] = "...";
+                    }
+                }
+
+                $values["Crypto Fees"] = $crypto_charge;
+                $values[""] = "---";
+
+                foreach ($agentFees as $name => $fee) {
+                    if ($name == "PP Friend") {
+                        $ppFriendUSDTShare =  round(((float) $payable_to_client_total * (float) Session::get('ppFriendUSDTFee')) / 100, 2); // Format to 2 decimal places
+                        $values["PP Friend USDT Fee - " . Session::get('ppFriendUSDTFee') . "%"] = $ppFriendUSDTShare;
+                    }
+                }
+
+                if (isset($agentFees['PP Friend'])) {
+
+                    $totalPPFriendShare = $agentFees['PP Friend'] + $ppFriendUSDTShare;
+                    $values["PP Friend Share"] = $totalPPFriendShare;
+                }
+
+
+
+                $totalCRFHfee = (float) $NetRefundFee + (float) $NetCBFee + (float) $NetHRFee + (float) $NetFWFee + (float) $NetPRFee;
+
+                $values = array_merge($values, [
+                    '--' => '--',
+                    '50 CHARGEBACKS' => "--",
+                    'Refund Fee' => $NetRefundFee ?? 0,
+                    'Chargeback Fee' => $NetCBFee ?? 0,
+                    'HighRisk Fee' => $NetHRFee ?? 0,
+                    'Fraud Warning Fee' => $NetFWFee ?? 0,
+                    'Partial Refund Fee' => $NetPRFee ?? 0,
+                    'Total Fee Value' => $totalCRFHfee,
+                    '....' => '....'
+                ]);
+
+                $values = array_merge($values, [
+                    '****' => '****',
+                    'Net PYY Share' => $NetPYYShare ?? 0,
+                    'Net Limegrove Share' => $NetLimeGroveShare ?? 0,
+                    '****' => '****',
+                ]);
+
+                $values = array_merge($values, [
+                    '---' => '---',
+                    '50cents Fees' => Session::get("totalTrxFeeValue") ?? 0,
+
                 ]);
 
 
@@ -513,6 +639,8 @@ class GenerateClientExcel implements ShouldQueue
                     // Append a row as [key, value]
                     $cumulativeValues[] = [$key, $value];
                 }
+
+
 
                 $totalSuccessTrxAmt =
                     ($total_transactions['USD'] ?? 0) +

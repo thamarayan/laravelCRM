@@ -15,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        require_once app_path('Helpers/ReportHelpers.php');
+        require_once app_path('Helpers/ReportSubHelpers.php');
     }
 
     /**
@@ -27,6 +27,5 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         Schema::defaultStringLength(191);
-
     }
 }
