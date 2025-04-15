@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class WeeklyReports extends Model
+class ClientPSP extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    protected $table = 'weekly_reports';
+    protected $table = "client_psp";
 
-    public function clientDetails()
+    public function pspDetails()
     {
-        return $this->hasOne(ClientDetails::class, 'client_id', 'user_ID');
+        return $this->hasOne(PspList::class, 'psp_id', 'payment_bank');
     }
 }

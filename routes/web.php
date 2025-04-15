@@ -22,6 +22,17 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
+Route::get('/paymentForm', [App\Http\Controllers\PaymentProcessController::class, 'index'])->name('payment.page');
+
+Route::get('/successPage', [App\Http\Controllers\PaymentProcessController::class, 'successPage'])->name('payment.success');
+
+Route::get('/failPage', [App\Http\Controllers\PaymentProcessController::class, 'failPage'])->name('payment.fail');
+
+Route::post('/payment/store', [App\Http\Controllers\PaymentProcessController::class, 'store'])->name('processPayment.store');
+
+Route::post('/akuroCBResponse', [App\Http\Controllers\PaymentProcessController::class, 'akuroCBResponse'])->name('akuroCBResponse');
+
+Route::get('/catchup_3dsResponse', [App\Http\Controllers\PaymentProcessController::class, 'catchup_3dsResponse'])->name('catchup_3dsResponse');
 
 Route::get('/account/form', [App\Http\Controllers\HomeController::class, 'account_form'])->name('account.form');
 
@@ -741,4 +752,23 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('merchant/application/edit/{id}', [App\Http\Controllers\MerchantApplicationController::class, 'edit'])->name('merchant.application.edit');
 
     Route::get('merchant/application/detail/{id}', [App\Http\Controllers\MerchantApplicationController::class, 'detail'])->name('merchant.application.detail');
+
+    // Configurations
+    Route::get('/merchants', [App\Http\Controllers\routingController::class, 'merchants_index'])->name('merchantsConfig');
+
+    Route::post('/updateVelocities_agents', [App\Http\Controllers\routingController::class, 'updateVelocities_agents'])->name('updateVelocities_agents');
+
+    Route::post('/addMerchantConfig', [App\Http\Controllers\routingController::class, 'addMerchantConfig'])->name('addMerchantConfig');
+
+    Route::post('/updateMerchantConfig', [App\Http\Controllers\routingController::class, 'updateMerchantConfig'])->name('updateMerchantConfig');
+
+    Route::post('/enableDisableClient', [App\Http\Controllers\routingController::class, 'enableDisableClient'])->name('enableDisableClient');
+
+    Route::delete('/deleteBank/{id}/{client}', [App\Http\Controllers\routingController::class, 'deleteBank']);
+
+    Route::get('/psps', [App\Http\Controllers\routingController::class, 'psp_index'])->name('pspsConfig');
+
+    //Transactions
+
+    Route::get('/transactions', [App\Http\Controllers\TransactionsController::class, 'index'])->name('transactions');
 });

@@ -1,22 +1,22 @@
-@extends('layouts.master')
 
-@section('title')
-    @lang('Routings - Merchants')
-@endsection
 
-@section('css')
+<?php $__env->startSection('title'); ?>
+    <?php echo app('translator')->get('Routings - Merchants'); ?>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection('css'); ?>
     <!-- select2 css -->
-    <link href="{{ URL::asset('build/libs/select2/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
+    <link href="<?php echo e(URL::asset('build/libs/select2/css/select2.min.css')); ?>" rel="stylesheet" type="text/css" />
 
     <!-- bootstrap-datepicker css -->
-    <link href="{{ URL::asset('build/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
+    <link href="<?php echo e(URL::asset('build/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css')); ?>" rel="stylesheet">
 
     <!-- DataTables -->
-    <link href="{{ URL::asset('build/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}" rel="stylesheet"
+    <link href="<?php echo e(URL::asset('build/libs/datatables.net-bs4/css/dataTables.bootstrap4.min.css')); ?>" rel="stylesheet"
         type="text/css" />
 
     <!-- Responsive datatable examples -->
-    <link href="{{ URL::asset('build/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}"
+    <link href="<?php echo e(URL::asset('build/libs/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css')); ?>"
         rel="stylesheet" type="text/css" />
 
     <style>
@@ -104,28 +104,28 @@
             display: none;
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('css')
-    {{-- Bootstrap CSS --}}
+<?php $__env->startSection('css'); ?>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
-    @component('components.breadcrumb')
-        @slot('li_1')
+<?php $__env->startSection('content'); ?>
+    <?php $__env->startComponent('components.breadcrumb'); ?>
+        <?php $__env->slot('li_1'); ?>
             Transactions
-        @endslot
+        <?php $__env->endSlot(); ?>
 
-        @slot('title')
+        <?php $__env->slot('title'); ?>
             Transactions
-        @endslot
-    @endcomponent
+        <?php $__env->endSlot(); ?>
+    <?php echo $__env->renderComponent(); ?>
 
-    @include('flash_msg')
+    <?php echo $__env->make('flash_msg', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     <div class="container-fluid cf-main">
         <div class="row">
@@ -139,59 +139,59 @@
                             <th scope="col">Amount</th>
                             <th scope="col">Currency</th>
                             <th scope="col">Status</th>
-                            {{-- <th scope="col">Order Message</th> --}}
+                            
                             <th scope="col">Bank</th>
                             <th scope="col">Card Type</th>
                             <th scope="col">Card Number</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($transactions as $trx)
+                        <?php $__currentLoopData = $transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $trx): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tr>
-                                <td>{{ $trx->orderId }}</td>
-                                <td>{{ $trx->orderDate }}</td>
-                                <td>{{ $trx->invoiceNumber }}</td>
-                                <td>{{ $trx->amount }}</td>
-                                <td>{{ $trx->currency }}</td>
-                                <td>{{ $trx->orderStatus }}</td>
-                                {{-- <td>{{ $trx->orderMessage }}</td> --}}
-                                <td>{{ $trx->bank_name }}</td>
-                                <td>{{ $trx->card_type }}</td>
-                                <td>{{ $trx->cardnum }}</td>
+                                <td><?php echo e($trx->orderId); ?></td>
+                                <td><?php echo e($trx->orderDate); ?></td>
+                                <td><?php echo e($trx->invoiceNumber); ?></td>
+                                <td><?php echo e($trx->amount); ?></td>
+                                <td><?php echo e($trx->currency); ?></td>
+                                <td><?php echo e($trx->orderStatus); ?></td>
+                                
+                                <td><?php echo e($trx->bank_name); ?></td>
+                                <td><?php echo e($trx->card_type); ?></td>
+                                <td><?php echo e($trx->cardnum); ?></td>
                             </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
 <!-- select2 -->
 
-<script src="{{ URL::asset('build/libs/select2/js/select2.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/select2/js/select2.min.js')); ?>"></script>
 
 <!-- bootstrap-datepicker js -->
 
-<script src="{{ URL::asset('build/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js')); ?>"></script>
 
 <!-- Required datatable js -->
 
-<script src="{{ URL::asset('build/libs/datatables.net/js/jquery.dataTables.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net/js/jquery.dataTables.min.js')); ?>"></script>
 
-<script src="{{ URL::asset('build/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js')); ?>"></script>
 
 
 <!-- Responsive examples -->
 
-<script src="{{ URL::asset('build/libs/datatables.net-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-responsive/js/dataTables.responsive.min.js')); ?>"></script>
 
-<script src="{{ URL::asset('build/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js')); ?>"></script>
 
 
 <!-- init js -->
 
-<script src="{{ URL::asset('build/js/pages/crypto-orders.init.js') }}"></script>
+<script src="<?php echo e(URL::asset('build/js/pages/crypto-orders.init.js')); ?>"></script>
 
 
 
@@ -216,3 +216,5 @@
 </script>
 <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
 </script>
+
+<?php echo $__env->make('layouts.master', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\laravelCRM\resources\views/transactions/index.blade.php ENDPATH**/ ?>
